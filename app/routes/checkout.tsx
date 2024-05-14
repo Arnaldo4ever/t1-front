@@ -1,4 +1,5 @@
 // import { json, redirect } from "@remix-run/node";
+import axios from "axios";
 // import { useLoaderData, useActionData, useNavigation, Link, Form } from "@remix-run/react";
 import { Form } from "@remix-run/react";
 // import type { LinksFunction, ActionFunctionArgs, ActionFunction } from "@remix-run/node";
@@ -19,10 +20,31 @@ export const action: ActionFunction = async ({ request }) => {
 	const expiracion_mes = formData.get("expiracion_mes");
 	const expiracion_anio = formData.get("expiracion_anio");
 
+	const monto = formData.get("monto");
+	const metodo_pago = "tarjeta";
+	const credito = {
+		"formato": "claroshop", // claroshop
+	};
+	const transferencia = {
+		"formato": "1000000",
+	};
+	const cliente = {
+		"nombre": "John Doe",
+		"email": formData.get("email"),
+		"direccion": {
+			"linea1": formData.get("linea1"),
+			"linea2": formData.get("linea2"),
+			"linea3": formData.get("linea3"),
+			"cp": formData.get("cp"),
+			"municipio": formData.get("municipio"),
+			"ciudad": formData.get("ciudad"),
+			"pais": "MEX",
+		}
+	};
 
-	const API = "https://api.sandbox.claropagos.com/v1/tarjeta";
+	const Tarjeta_API = "https://api.sandbox.claropagos.com/v1/tarjeta";
 
-	const res = await fetch(`${API}`, {
+	const res = await fetch(`${Tarjeta_API}`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json; charset=utf-8",
@@ -30,11 +52,34 @@ export const action: ActionFunction = async ({ request }) => {
 		},
 		body: JSON.stringify({ nombre, cvv2, pan, expiracion_mes, expiracion_anio }),
 	}).then(function (response) {
-		return response.json();
+		const Server_Response = response.json();
+		return Server_Response;
 	}).then(function (data) {
-		console.log(data);
 		return data;
 	});
+
+	// if (res.response === 200) {
+	const tarjeta = {
+		"token": res.data.tarjeta.token
+	};
+
+	const Crear_Cargo_API = "https://api.sandbox.claropagos.com/v1/cargo";
+
+	const Crear_Cargo_Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIyIiwianRpIjoiNTRjN2RlZDdhZWIyOTZlMjgwM2U0NTZmNGFmOTA5OWFjNTYxYTkyN2VjODhiNGMzNTA2ZDVjODA1ZjhiMjQ3NjYzY2EzZmMwYzc1ZGQ1YWMiLCJpYXQiOjE3MTQyODAwNTYuNzI3NTM0LCJuYmYiOjE3MTQyODAwNTYuNzI3NTQzLCJleHAiOjE3NzczNTIwNTYuNzE5OTQzLCJzdWIiOiIxMjMiLCJzY29wZXMiOlsiY2xpZW50ZS10YXJqZXRhcyIsImNsaWVudGUtdHJhbnNhY2Npb25lcyIsImNsaWVudGUtY2xpZW50ZXMiLCJjbGllbnRlLXN1c2NyaXBjaW9uZXMiLCJjbGllbnRlLXBsYW5lcyIsImNsaWVudGUtYW50aWZyYXVkZSIsImNsaWVudGUtd2ViaG9va3MiLCJjbGllbnRlLWNvbmNpbGlhY2lvbiIsImNsaWVudGUtdnRleCJdfQ.Z_5VwiBU7aiRoDStZ2vDjyhvPMkqT3pNDkgowzvVfiyp8gbtIXd8PBFA5muPE1-SYZesyT6nQ_RG9SFm40tT8cbh25gT6E0YCakc1FsoV7nnZsIyT90G-9y6t50pJU_CHtjVrvNjZBd8SrIwZO_MjWhSk_1JJWWiAIPHeFbVNwnGyBPCBYM0GjGcBlhdK-F3n8aosHxZEM7oWlcdHYhZw7DPOQlN7O1sFjjVFoXzyy1vDKsHm3eJ5Ixutl0cLkZm5Ka70XVH3XU_oOISPB-u8yt6G3WkH-ZoWRaP_DZdHyDnl_nCIV_kntRLHkXbqj_IMg3pOG1-10gXBcbp8pGDBb2vs7RdhPPVutZZ5nV18jrHdwiI0CpmvFHNppsT4Q_j7wXTl_GSgT6FOG7YmBuTkPjeajh3Cg1q3ZdFcBF6EB0n_I2l2xTcxxf69gskPhvto_3pouDTq9uvCk9GP6sUqTo9iU9JvxvRIiQD6r5oum7tuxznXk1rjXGIrgzoq5m2xPT0TbIgSWJ-gTHSlQYOtupUhfrFQYxVr2CGDTM4yHDfAjw8T1HC46FSBdd8dmzaBX8b5nii4pZ8s7nJ_Mg1fsa2Zg7zYuu7QI-EqHIsAyrcyT93jjLrkUpcbBJ-3F8TbN5yxpBftOc2bJ5YeWvKF6U1tINNgUWGfdjkydX1Ij0";
+
+	axios(`${Crear_Cargo_API}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json; charset=utf-8",
+			"Authorization": `Bearer ${Crear_Cargo_Token}`
+		},
+		data: JSON.stringify({
+			monto, metodo_pago, tarjeta, cliente
+		}),
+	}).then(response => {
+		console.log(response);
+	});
+	// }
 
 	return res.data;
 };
@@ -58,8 +103,8 @@ export default function newPayment() {
 										<div className="relative mt-2 rounded shadow-sm">
 											<input
 												type="text"
-												name="correo"
-												id="correo"
+												name="email"
+												id="email"
 												className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
 												placeholder="Correo electrónico"
 											/>
@@ -133,8 +178,8 @@ export default function newPayment() {
 											<div className="col-span-12">
 												<input
 													type="text"
-													name="linea1"
-													id="linea1"
+													name="linea2"
+													id="linea2"
 													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
 													placeholder="Apartamento, casa, etc... (opcional)"
 												/>
@@ -378,9 +423,10 @@ export default function newPayment() {
 												<h6 className="font-sans text-xl font-semibold">Total</h6>
 											</div>
 											<div className="c-product__price-label">
-												<p className="c-product__price font-sans text-sm font-medium">
+												<div className="c-product__price font-sans text-sm font-medium">
 													<span className="font-light text-gray-500">COP  </span>
-													<b className="text-xl font-medium">$3,129.64</b></p>
+													<input type="text" name="monto" id="monto" className="text-xl font-medium" defaultValue="99999" />
+												</div>
 											</div>
 										</div>
 									</div>
