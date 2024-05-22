@@ -1,93 +1,34 @@
-// import { json, redirect } from "@remix-run/node";
-import axios from "axios";
-// import { useLoaderData, useActionData, useNavigation, Link, Form } from "@remix-run/react";
-import { Form } from "@remix-run/react";
-// import type { LinksFunction, ActionFunctionArgs, ActionFunction } from "@remix-run/node";
-import type { LinksFunction, ActionFunction } from "@remix-run/node";
-// Tailwind CSS
-import stylesheet from "../tailwind.css?url";
+/* eslint-disable prefer-const */
+import {
+	isRouteErrorResponse,
+	useActionData,
+	useRouteError,
+	Form
+} from "@remix-run/react";
+import type { ActionFunction, ActionFunctionArgs } from "@remix-run/node";
+// import { json } from "@remix-run/node";
+import { CrearTarjeta } from "./crear-tarjeta";
+// import { CrearCargo } from "./crear-cargo";
+// import { AntiFraude } from "./anti-fraude";
 
-export const links: LinksFunction = () => [
-	{ rel: "stylesheet", href: stylesheet },
-];
-
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData();
 
-	const nombre = formData.get("nombre");
-	const cvv2 = formData.get("cvv2");
-	const pan = formData.get("pan");
-	const expiracion_mes = formData.get("expiracion_mes");
-	const expiracion_anio = formData.get("expiracion_anio");
+	const values = Object.fromEntries(formData);
 
-	const monto = formData.get("monto");
-	const metodo_pago = "tarjeta";
-	const credito = {
-		"formato": "claroshop", // claroshop
-	};
-	const transferencia = {
-		"formato": "1000000",
-	};
-	const cliente = {
-		"nombre": "John Doe",
-		"email": formData.get("email"),
-		"direccion": {
-			"linea1": formData.get("linea1"),
-			"linea2": formData.get("linea2"),
-			"linea3": formData.get("linea3"),
-			"cp": formData.get("cp"),
-			"municipio": formData.get("municipio"),
-			"ciudad": formData.get("ciudad"),
-			"pais": "MEX",
-		}
-	};
+	const btnTrigger = formData.get("btn-trigger");
 
-	const Tarjeta_API = "https://api.sandbox.claropagos.com/v1/tarjeta";
-
-	const res = await fetch(`${Tarjeta_API}`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json; charset=utf-8",
-			"Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIyIiwianRpIjoiN2FlNjc1NzhlZDNkMDcyNjgxZTk4OWEyYjBhNTRlZTNkZTIyNDU5OGQxN2M4MjZjZjUyN2NhMzRkNmYyMmZmYTQxNGQzZDU1ZWZjMTk3NGEiLCJpYXQiOjE3MTQwNzE4MTcuMjQwNTY4LCJuYmYiOjE3MTQwNzE4MTcuMjQwNTcyLCJleHAiOjE3NzcxNDM4MTcuMjMzNzg4LCJzdWIiOiIxMjMiLCJzY29wZXMiOlsiY2xpZW50ZS10YXJqZXRhcyJdfQ.GRosiDcJE6cg2oB3K0-FijrP9bwmXDAthVHIq4DfilucEWscIbecIG2JtHJ4PdU2E9VeU4VbpmyYE6B-PvKoUvjdlccTe97jNf9T5AYPupI3pkZJw5QtZ_XGNiKS-5ktvB3tLl2BRYTs_SAtgBdK3DiP0sS6btekTggCdugmFYdmQSm6o4KhF0m7xA4RT0EaXCri7FMWh_u2QW5MbWCkJYiqrMP20o6YN8Ad--FPYkJrV4FIiC2AuLjX1wFaI5l76gBVgWdAlsorANvLk1upQGOmYaRQIBPE01FM3Z-oeaQJhmrADFsFKKZUpe5aIcnLzL3KDjzt24v4Zt3Q6cm9wG-FDS0DU3h7Af9zSjy3ec2ejBo-mFIGwKeCNFPweEFbk-Do8VhUDZ40W3JOJCUJ42NJwNxBXLKVxorlyeTIXUARk8rjktHp1J8wP-SWM8H45kWnJ3YjI_Gdf-wEpCstywcTeCpnMl2LcxwRNf0T4aKKkLV1I5KYGbfjjuAOXLrPyktRsQi8SeIT2x2yJnRGtv_d6ZbPheq6ZVaLhV1QVKvd2X0WqOaQxt7bagFGfxSkSXEshHaQEafzRFyctNAXVuDOe2qDAAR0VAq78Zvq-wD9KBGqRIkba7Zl_jAVmyqIg_ybK8E4wJMRNUKa7i1evTCENCPsZz38fE39bnup2uk"
-		},
-		body: JSON.stringify({ nombre, cvv2, pan, expiracion_mes, expiracion_anio }),
-	}).then(function (response) {
-		const Server_Response = response.json();
-		return Server_Response;
-	}).then(function (data) {
-		return data;
-	});
-
-	// if (res.response === 200) {
-	const tarjeta = {
-		"token": res.data.tarjeta.token
-	};
-
-	const Crear_Cargo_API = "https://api.sandbox.claropagos.com/v1/cargo";
-
-	const Crear_Cargo_Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIyIiwianRpIjoiNTRjN2RlZDdhZWIyOTZlMjgwM2U0NTZmNGFmOTA5OWFjNTYxYTkyN2VjODhiNGMzNTA2ZDVjODA1ZjhiMjQ3NjYzY2EzZmMwYzc1ZGQ1YWMiLCJpYXQiOjE3MTQyODAwNTYuNzI3NTM0LCJuYmYiOjE3MTQyODAwNTYuNzI3NTQzLCJleHAiOjE3NzczNTIwNTYuNzE5OTQzLCJzdWIiOiIxMjMiLCJzY29wZXMiOlsiY2xpZW50ZS10YXJqZXRhcyIsImNsaWVudGUtdHJhbnNhY2Npb25lcyIsImNsaWVudGUtY2xpZW50ZXMiLCJjbGllbnRlLXN1c2NyaXBjaW9uZXMiLCJjbGllbnRlLXBsYW5lcyIsImNsaWVudGUtYW50aWZyYXVkZSIsImNsaWVudGUtd2ViaG9va3MiLCJjbGllbnRlLWNvbmNpbGlhY2lvbiIsImNsaWVudGUtdnRleCJdfQ.Z_5VwiBU7aiRoDStZ2vDjyhvPMkqT3pNDkgowzvVfiyp8gbtIXd8PBFA5muPE1-SYZesyT6nQ_RG9SFm40tT8cbh25gT6E0YCakc1FsoV7nnZsIyT90G-9y6t50pJU_CHtjVrvNjZBd8SrIwZO_MjWhSk_1JJWWiAIPHeFbVNwnGyBPCBYM0GjGcBlhdK-F3n8aosHxZEM7oWlcdHYhZw7DPOQlN7O1sFjjVFoXzyy1vDKsHm3eJ5Ixutl0cLkZm5Ka70XVH3XU_oOISPB-u8yt6G3WkH-ZoWRaP_DZdHyDnl_nCIV_kntRLHkXbqj_IMg3pOG1-10gXBcbp8pGDBb2vs7RdhPPVutZZ5nV18jrHdwiI0CpmvFHNppsT4Q_j7wXTl_GSgT6FOG7YmBuTkPjeajh3Cg1q3ZdFcBF6EB0n_I2l2xTcxxf69gskPhvto_3pouDTq9uvCk9GP6sUqTo9iU9JvxvRIiQD6r5oum7tuxznXk1rjXGIrgzoq5m2xPT0TbIgSWJ-gTHSlQYOtupUhfrFQYxVr2CGDTM4yHDfAjw8T1HC46FSBdd8dmzaBX8b5nii4pZ8s7nJ_Mg1fsa2Zg7zYuu7QI-EqHIsAyrcyT93jjLrkUpcbBJ-3F8TbN5yxpBftOc2bJ5YeWvKF6U1tINNgUWGfdjkydX1Ij0";
-
-	axios(`${Crear_Cargo_API}`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json; charset=utf-8",
-			"Authorization": `Bearer ${Crear_Cargo_Token}`
-		},
-		data: JSON.stringify({
-			monto, metodo_pago, tarjeta, cliente
-		}),
-	}).then(response => {
-		console.log(response);
-	});
-	// }
-
-	return res.data;
+	if (btnTrigger === "submit-checkout") {
+		// return AntiFraude(values);
+		return await CrearTarjeta(values);
+	}
 };
 
-// Imprimir la data en el componente react
-export default function newPayment() {
+export default function Checkout() {
+	const actionData = useActionData<typeof action>();
+
 	return (
-		<div>
+		<>
 			<div className="max-w-full bg-slate-900 py-20">
 				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto">
 					<Form method="post" className="grid grid-cols-12 bg-white">
@@ -140,28 +81,29 @@ export default function newPayment() {
 														autoComplete="country-name"
 														className="block w-full rounded-md border-0 py-3.5 px-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6 transition-all outline-0"
 													>
-														<option>Venezuela</option>
-														<option>Colombia</option>
-														<option>Mexico</option>
-														<option>Puerto Rico</option>
-														<option>...</option>
+														<option value="COL">Colombia</option>
+														<option value="MEX">Mexico</option>
+														<option value="PRI">Puerto Rico</option>
 													</select>
 												</div>
 											</div>
 											<div className="col-span-6">
 												<input
 													type="text"
-													name="nombre2"
-													id="nombre2"
+													name="cliente_nombre"
+													id="cliente_nombre"
 													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
 													placeholder="Nombre"
 												/>
+												{actionData?.errores?.cliente ? (
+													<span className="text-sm font-medium text-red-500 mt-2">{actionData?.errores.cliente}</span>
+												) : null}
 											</div>
 											<div className="col-span-6">
 												<input
 													type="text"
-													name="apellido"
-													id="apellido"
+													name="apellido_paterno"
+													id="apellido_paterno"
 													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
 													placeholder="Apellido"
 												/>
@@ -223,7 +165,7 @@ export default function newPayment() {
 													</div>
 													<div className="text-sm leading-6">
 														<label htmlFor="guardar_info" className="font-normal text-gray-900">
-															Guardar esta información para futuras compras
+															Guardar esta información para una próxima vez
 														</label>
 													</div>
 												</div>
@@ -345,6 +287,94 @@ export default function newPayment() {
 																	</div>
 																</div>
 															</div>
+															{/* <div className="col-span-12">
+																<div className="grid grid-cols-12 gap-4">
+																	<div className="col-span-12">
+																		<h3 className="text-xl font-medium leading-6 text-gray-900">
+																			Billing Address
+																		</h3>
+																		<div className="w-full mt-4">
+																			<select
+																				id="pais"
+																				name="pais"
+																				autoComplete="country-name"
+																				className="block w-full rounded-md border-0 py-3.5 px-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6 transition-all outline-0"
+																			>
+																				<option value="VEN">Venezuela</option>
+																				<option value="COL">Colombia</option>
+																				<option value="MEX">Mexico</option>
+																				<option value="PRI">Puerto Rico</option>
+																			</select>
+																		</div>
+																	</div>
+																	<div className="col-span-6">
+																		<input
+																			type="text"
+																			name="cliente_nombre"
+																			id="cliente_nombre"
+																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																			placeholder="Nombre"
+																		/>
+																		{actionData?.errores?.cliente ? (
+																			<span className="text-sm font-medium text-red-500 mt-2">{actionData?.errores.cliente}</span>
+																		) : null}
+																	</div>
+																	<div className="col-span-6">
+																		<input
+																			type="text"
+																			name="apellido_paterno"
+																			id="apellido_paterno"
+																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																			placeholder="Apellido"
+																		/>
+																	</div>
+																	<div className="col-span-12">
+																		<input
+																			type="text"
+																			name="linea1"
+																			id="linea1"
+																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																			placeholder="Dirección"
+																		/>
+																	</div>
+																	<div className="col-span-12">
+																		<input
+																			type="text"
+																			name="linea2"
+																			id="linea2"
+																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																			placeholder="Apartamento, casa, etc... (opcional)"
+																		/>
+																	</div>
+																	<div className="col-span-4">
+																		<input
+																			type="text"
+																			name="ciudad"
+																			id="ciudad"
+																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																			placeholder="Ciudad"
+																		/>
+																	</div>
+																	<div className="col-span-4">
+																		<input
+																			type="text"
+																			name="municipio"
+																			id="municipio"
+																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																			placeholder="Municipio"
+																		/>
+																	</div>
+																	<div className="col-span-4">
+																		<input
+																			type="text"
+																			name="cp"
+																			id="cp"
+																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																			placeholder="Código Postal"
+																		/>
+																	</div>
+																</div>
+															</div> */}
 														</div>
 													</div>
 												</div>
@@ -352,9 +382,10 @@ export default function newPayment() {
 										</div>
 									</div>
 								</div>
+								{/* Action */}
 								<div className="col-span-12 mt-5">
 									<div className="flex flex-col items-center justify-center align-middle">
-										<button type="submit" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all">Pagar ahora</button>
+										<button type="submit" name="btn-trigger" value="submit-checkout" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all">Pagar ahora</button>
 									</div>
 								</div>
 								<div className="col-span-12 mt-20">
@@ -436,6 +467,33 @@ export default function newPayment() {
 					</Form>
 				</div>
 			</div>
-		</div>
+		</>
+	);
+}
+
+export function ErrorBoundary() {
+	const error = useRouteError();
+	let heading = '¡Algo salio mal!';
+	let message = `Disculpe, algo salio mal, por favor intente nuevamente.`;
+	if (isRouteErrorResponse(error) && error.status === 400) {
+		heading = 'Error en los parametros de entrada';
+		message = `Disculpe, todos los campos son requeridos! Por favor verifique los campos antes de realizar su pago.`;
+	}
+
+	return (
+		<>
+			<div className="max-w-full h-screen">
+				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto h-full">
+					<div className="grid grid-cols-12 gap-4 h-full">
+						<div className="col-span-12">
+							<div className="flex flex-col items-center justify-center align-middle h-full">
+								<h2 className="font-sans text-3xl font-bold text-red-500 leading-loose">{heading}</h2>
+								<p className="font-sans text-base font-normal text-slate-900">{message}</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</>
 	);
 }
