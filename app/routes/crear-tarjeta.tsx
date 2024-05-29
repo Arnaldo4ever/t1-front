@@ -1,7 +1,16 @@
+//! Core Imports
 import { json } from "@remix-run/node";
+
+//! Functions
 import { CrearCargo } from "./crear-cargo";
+import { Toaster, toast } from "sonner";
+// import { v4 as uuidv4 } from "uuid";
 
 export async function CrearTarjeta(values: NonNullable<object>): Promise<Response> {
+
+    // const ClienteID = uuidv4();
+
+    // console.log(ClienteID);
 
     //! Datos requeridos de la Tarjeta
     const data = {
@@ -32,9 +41,9 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
         //     "longitud": -90,
         //     "latitud": -90
         // },
-        // "cliente_id": "string",
-        // "default": true,
-        // "cargo_unico": true
+        // "cliente_id": 0,
+        "default": true,
+        "cargo_unico": true
     };
 
     //! API Endpoint (DEV)
@@ -55,7 +64,6 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
     const result = await res.json();
 
     /*
-    * //! Si funciona, no lo toques!.
     * Token requerido para la creación del Cargo
     * @return String();
     */
@@ -63,7 +71,11 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
     if (result.status === "success") {
         const tarjeta_token = result.data.tarjeta.token;
 
+        toast.success("SI");
+
         return await CrearCargo(values, tarjeta_token);
+    } else if (result.status === "fail") {
+        toast.error("NO");
     }
 
     return json(result);

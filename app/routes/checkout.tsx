@@ -1,15 +1,32 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prefer-const */
+//! Core Imports
 import {
 	isRouteErrorResponse,
 	useActionData,
 	useRouteError,
-	Form
+	Form,
+	Links,
+	LiveReload,
+	Outlet,
+	Scripts,
+	Meta,
+	ScrollRestoration,
+	useLoaderData,
+	useNavigation,
+	useSubmit,
 } from "@remix-run/react";
-import type { ActionFunction, ActionFunctionArgs } from "@remix-run/node";
-// import { json } from "@remix-run/node";
+import { useEffect } from "react";
+import { json, type ActionFunction, type LinksFunction, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
+
+//! Functions
+// import { AntiFraude } from "./anti-fraude";
+// import { CrearCliente } from "./crear-cliente";
 import { CrearTarjeta } from "./crear-tarjeta";
 // import { CrearCargo } from "./crear-cargo";
-// import { AntiFraude } from "./anti-fraude";
+
+//! Toaster Sonner
+import { Toaster, toast } from 'sonner';
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData();
@@ -19,19 +36,21 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 	const btnTrigger = formData.get("btn-trigger");
 
 	if (btnTrigger === "submit-checkout") {
-		// return AntiFraude(values);
 		return await CrearTarjeta(values);
 	}
+
+	return json(values);
 };
 
 export default function Checkout() {
+	const navigation = useNavigation();
 	const actionData = useActionData<typeof action>();
 
 	return (
 		<>
 			<div className="max-w-full bg-slate-900 py-20">
 				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto">
-					<Form method="post" className="grid grid-cols-12 bg-white">
+					<Form method="POST" className="grid grid-cols-12 bg-white">
 						{/* Datos de Pago */}
 						<div className="col-span-12 md:col-span-7 md:border-r md:border-gray-300">
 							<div className="w-full p-10">
@@ -385,7 +404,13 @@ export default function Checkout() {
 								{/* Action */}
 								<div className="col-span-12 mt-5">
 									<div className="flex flex-col items-center justify-center align-middle">
-										<button type="submit" name="btn-trigger" value="submit-checkout" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all">Pagar ahora</button>
+										<button type="submit" name="btn-trigger" value="submit-checkout" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all" onClick={() => toast.loading("Enviando...")}>
+											{
+												navigation.state === "submitting"
+													? "Enviando..."
+													: "Pagar ahora"
+											}
+										</button>
 									</div>
 								</div>
 								<div className="col-span-12 mt-20">
@@ -465,35 +490,9 @@ export default function Checkout() {
 							</div>
 						</div>
 					</Form>
-				</div>
-			</div>
-		</>
-	);
-}
-
-export function ErrorBoundary() {
-	const error = useRouteError();
-	let heading = '¡Algo salio mal!';
-	let message = `Disculpe, algo salio mal, por favor intente nuevamente.`;
-	if (isRouteErrorResponse(error) && error.status === 400) {
-		heading = 'Error en los parametros de entrada';
-		message = `Disculpe, todos los campos son requeridos! Por favor verifique los campos antes de realizar su pago.`;
-	}
-
-	return (
-		<>
-			<div className="max-w-full h-screen">
-				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto h-full">
-					<div className="grid grid-cols-12 gap-4 h-full">
-						<div className="col-span-12">
-							<div className="flex flex-col items-center justify-center align-middle h-full">
-								<h2 className="font-sans text-3xl font-bold text-red-500 leading-loose">{heading}</h2>
-								<p className="font-sans text-base font-normal text-slate-900">{message}</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+				</div >
+			</div >
+			<Toaster position="top-right" richColors closeButton />
 		</>
 	);
 }

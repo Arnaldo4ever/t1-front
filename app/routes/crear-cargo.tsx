@@ -1,5 +1,9 @@
 /* eslint-disable prefer-const */
+//! Core Imports
 import { json } from "@remix-run/node";
+
+//! Functions
+import { AntiFraude } from "./anti-fraude";
 
 export async function CrearCargo(values: NonNullable<object>, tarjeta_token: NonNullable<object>): Promise<Response> {
 
@@ -69,8 +73,8 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
             // "datos_comercio": {}
         },
         // "cliente": {
-        //     "id": "string",
-        //     "id_externo": "string",
+        "id": "0",
+        // "id_externo": "ba4e968d-95d0-4a4d-928b-808a58ffbb55",
         //     "creacion_externa": "2019-08-24T14:15:22Z",
         //     "nombre": "string",
         //     "apellido_paterno": "string",
@@ -104,6 +108,10 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
     });
 
     const result = await res.json();
+
+    // if (result.status === "success") {
+    //     return AntiFraude(values);
+    // }
 
     return json(result);
 }
