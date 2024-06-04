@@ -15,9 +15,13 @@ import {
 	useLoaderData,
 	useNavigation,
 	useSubmit,
+	useAsyncValue,
+	ClientLoaderFunctionArgs,
+	useParams,
+	useRoutes,
 } from "@remix-run/react";
 import { useEffect } from "react";
-import { json, type ActionFunction, type LinksFunction, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
+import { json, type ActionFunction, type LinksFunction, type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node";
 
 //! Functions
 // import { AntiFraude } from "./anti-fraude";
@@ -28,29 +32,85 @@ import { CrearTarjeta } from "./crear-tarjeta";
 //! Toaster Sonner
 import { Toaster, toast } from 'sonner';
 
+// export const loader = async ({ request, params, }: LoaderFunctionArgs) => {
+// 	return null;
+// };
+
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
+	//! Form DOM 
 	const formData = await request.formData();
 
-	const values = Object.fromEntries(formData);
+	//! Form Data
+	let values = Object.fromEntries(formData);
 
-	const btnTrigger = formData.get("btn-trigger");
+	let errors: {
+		pan?: string,
+		cvv2?: string,
+		expiracion_mes?: string,
+		expiracion_anio?: string,
+		nombre?: string,
+	} = {}
 
-	if (btnTrigger === "submit-checkout") {
-		return await CrearTarjeta(values);
+	if (!values.pan) {
+		errors.pan = "El campo número de tarjeta es obligatorio.";
 	}
 
-	return json(values);
+	if (!values.cvv2) {
+		errors.cvv2 = "El campo CVV2 es obligatorio.";
+	}
+
+	if (!values.expiracion_mes) {
+		errors.expiracion_mes = "El campo mes de expiración es obligatorio.";
+	}
+
+	if (!values.expiracion_anio) {
+		errors.expiracion_anio = "El campo año de expiración es obligatorio.";
+	}
+
+	if (!values.nombre) {
+		errors.nombre = "El campo Nombre en la Tarjeta es obligatorio.";
+	}
+
+	/**
+	 * @params pan, cvv2, expiracion_mes, expiracion_anio, nombre
+	 * @return Promise<Response>
+	*/
+
+	if (Object.keys(errors).length) {
+		await CrearTarjeta(values);
+		return json({ errors, values });
+	}
+	// 	errors: Object.keys(errors).length ? errors : CrearTarjeta(values),
+
+
+	return redirect("/thank-you");
 };
 
 export default function Checkout() {
-	const navigation = useNavigation();
-	const actionData = useActionData<typeof action>();
+	let navigation = useNavigation();
+	let actionData = useActionData<typeof action>();
+	// let loaderData = useLoaderData<typeof loader>();
+
+	//! Crear Tarjeta (Error Vars)
+	let panError = actionData?.errors?.pan;
+	let cvv2Error = actionData?.errors?.cvv2;
+	let expMonthError = actionData?.errors?.expiracion_mes;
+	let expYearError = actionData?.errors?.expiracion_anio;
+	let nombreError = actionData?.errors?.nombre;
+
+	useEffect(() => {
+		{ panError ? toast.error(`${panError}`) : null }
+		{ cvv2Error ? toast.error(`${cvv2Error}`) : null }
+		{ expMonthError ? toast.error(`${expMonthError}`) : null }
+		{ expYearError ? toast.error(`${expYearError}`) : null }
+		{ nombreError ? toast.error(`${nombreError}`) : null }
+	})
 
 	return (
 		<>
 			<div className="max-w-full bg-slate-900 py-20">
 				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto">
-					<Form method="POST" className="grid grid-cols-12 bg-white">
+					<Form method="post" className="grid grid-cols-12 bg-white">
 						{/* Datos de Pago */}
 						<div className="col-span-12 md:col-span-7 md:border-r md:border-gray-300">
 							<div className="w-full p-10">
@@ -114,9 +174,6 @@ export default function Checkout() {
 													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
 													placeholder="Nombre"
 												/>
-												{actionData?.errores?.cliente ? (
-													<span className="text-sm font-medium text-red-500 mt-2">{actionData?.errores.cliente}</span>
-												) : null}
 											</div>
 											<div className="col-span-6">
 												<input
@@ -334,9 +391,6 @@ export default function Checkout() {
 																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
 																			placeholder="Nombre"
 																		/>
-																		{actionData?.errores?.cliente ? (
-																			<span className="text-sm font-medium text-red-500 mt-2">{actionData?.errores.cliente}</span>
-																		) : null}
 																	</div>
 																	<div className="col-span-6">
 																		<input
@@ -404,7 +458,7 @@ export default function Checkout() {
 								{/* Action */}
 								<div className="col-span-12 mt-5">
 									<div className="flex flex-col items-center justify-center align-middle">
-										<button type="submit" name="btn-trigger" value="submit-checkout" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all" onClick={() => toast.loading("Enviando...")}>
+										<button type="submit" name="btn-trigger" value="submit-checkout" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all" disabled={navigation.state === "submitting" ? true : false}>
 											{
 												navigation.state === "submitting"
 													? "Enviando..."
@@ -492,7 +546,7 @@ export default function Checkout() {
 					</Form>
 				</div >
 			</div >
-			<Toaster position="top-right" richColors closeButton />
+			<Toaster position="bottom-right" richColors closeButton />
 		</>
 	);
 }
