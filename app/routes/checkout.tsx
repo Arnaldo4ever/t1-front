@@ -2,39 +2,20 @@
 /* eslint-disable prefer-const */
 //! Core Imports
 import {
-	isRouteErrorResponse,
 	useActionData,
-	useRouteError,
 	Form,
-	Links,
-	LiveReload,
-	Outlet,
-	Scripts,
-	Meta,
-	ScrollRestoration,
-	useLoaderData,
 	useNavigation,
-	useSubmit,
-	useAsyncValue,
-	ClientLoaderFunctionArgs,
-	useParams,
-	useRoutes,
 } from "@remix-run/react";
-import { useEffect } from "react";
-import { json, type ActionFunction, type LinksFunction, type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node";
+// import { useEffect } from "react";
+import { json, type ActionFunction, type ActionFunctionArgs, redirect } from "@remix-run/node";
 
 //! Functions
-// import { AntiFraude } from "./anti-fraude";
-// import { CrearCliente } from "./crear-cliente";
 import { CrearTarjeta } from "./crear-tarjeta";
-// import { CrearCargo } from "./crear-cargo";
 
 //! Toaster Sonner
-import { Toaster, toast } from 'sonner';
-
-// export const loader = async ({ request, params, }: LoaderFunctionArgs) => {
-// 	return null;
-// };
+// import { Toaster, toast } from 'sonner';
+import { Bounce, ToastContainer, toast } from "react-toastify";
+import React from "react";
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
 	//! Form DOM 
@@ -43,6 +24,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 	//! Form Data
 	let values = Object.fromEntries(formData);
 
+	//! Form Validation
 	let errors: {
 		pan?: string,
 		cvv2?: string,
@@ -71,25 +53,22 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 		errors.nombre = "El campo Nombre en la Tarjeta es obligatorio.";
 	}
 
-	/**
-	 * @params pan, cvv2, expiracion_mes, expiracion_anio, nombre
-	 * @return Promise<Response>
-	*/
-
 	if (Object.keys(errors).length) {
+		return json({ errors });
+	} else {
 		await CrearTarjeta(values);
-		return json({ errors, values });
+		return redirect("/thank-you");
 	}
 	// 	errors: Object.keys(errors).length ? errors : CrearTarjeta(values),
 
 
-	return redirect("/thank-you");
+	// return json(values);
 };
 
 export default function Checkout() {
 	let navigation = useNavigation();
 	let actionData = useActionData<typeof action>();
-	// let loaderData = useLoaderData<typeof loader>();
+
 
 	//! Crear Tarjeta (Error Vars)
 	let panError = actionData?.errors?.pan;
@@ -98,13 +77,22 @@ export default function Checkout() {
 	let expYearError = actionData?.errors?.expiracion_anio;
 	let nombreError = actionData?.errors?.nombre;
 
-	useEffect(() => {
-		{ panError ? toast.error(`${panError}`) : null }
-		{ cvv2Error ? toast.error(`${cvv2Error}`) : null }
-		{ expMonthError ? toast.error(`${expMonthError}`) : null }
-		{ expYearError ? toast.error(`${expYearError}`) : null }
-		{ nombreError ? toast.error(`${nombreError}`) : null }
-	})
+	//! Toast config
+	const toastId = React.useRef(null);
+
+	const notify = () => {
+		if (!toast.isActive(toastId.current)) {
+			toastId.current = toast.error(`${cvv2Error}`);
+		}
+	}
+
+	// useEffect(() => {
+	// 	{ panError ? toast.error(`${panError}`) : null }
+	// 	{ cvv2Error ? toast.error(`${cvv2Error}`) : null }
+	// 	{ expMonthError ? toast.error(`${expMonthError}`) : null }
+	// 	{ expYearError ? toast.error(`${expYearError}`) : null }
+	// 	{ nombreError ? toast.error(`${nombreError}`) : null }
+	// });
 
 	return (
 		<>
@@ -458,7 +446,7 @@ export default function Checkout() {
 								{/* Action */}
 								<div className="col-span-12 mt-5">
 									<div className="flex flex-col items-center justify-center align-middle">
-										<button type="submit" name="btn-trigger" value="submit-checkout" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all" disabled={navigation.state === "submitting" ? true : false}>
+										<button type="submit" name="btn-trigger" value="submit-checkout" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all" disabled={navigation.state === "submitting" ? true : false} onClick={notify}>
 											{
 												navigation.state === "submitting"
 													? "Enviando..."
@@ -546,7 +534,19 @@ export default function Checkout() {
 					</Form>
 				</div >
 			</div >
-			<Toaster position="bottom-right" richColors closeButton />
+			{/* <Toaster position="bottom-right" richColors closeButton /> */}
+			<ToastContainer
+				position="bottom-right"
+				autoClose={5000}
+				hideProgressBar={false}
+				newestOnTop
+				closeOnClick
+				rtl={false}
+				pauseOnFocusLoss
+				pauseOnHover
+				theme="light"
+				transition={Bounce}
+			/>
 		</>
 	);
 }

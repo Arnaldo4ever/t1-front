@@ -16,8 +16,12 @@ import {
 //! TailwindCSS
 import stylesheet from "./tailwind.css?url";
 
-//! Toaster Sonner
-import { Toaster, toast } from 'sonner';
+//! Toastify
+import { ToastContainer, toast } from 'react-toastify';
+
+import 'react-toastify/dist/ReactToastify.css';
+// minified version is also included
+// import 'react-toastify/dist/ReactToastify.min.css';
 
 export const meta: MetaFunction = () => {
 	return [
