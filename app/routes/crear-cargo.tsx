@@ -7,7 +7,13 @@ import { AntiFraude } from "./anti-fraude";
 
 export async function CrearCargo(values: NonNullable<object>, tarjeta_token: NonNullable<object>): Promise<Response> {
 
-    //! Datos requeridos del Cargo
+    /**
+    * Datos requeridos del Cargo
+    * Asignamos los valores de la data recibida de manera predeterminada para optimizar el tiempo de respuesta de la API
+    * 
+    * @var data
+    * @return <Object>
+    */
     let data = {
         "monto": values.monto,
         "pais": values.pais,
@@ -106,8 +112,9 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
     * 
     * @return Promise<Response>
     */
-    let res = await fetch(`${Crear_Cargo_API}`, {
+    const response = await fetch(`${Crear_Cargo_API}`, {
         method: "POST",
+        cache: "no-cache",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${Crear_Cargo_Token}`
@@ -115,7 +122,7 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
         body: JSON.stringify({ ...data }),
     });
 
-    let result = await res.json();
+    let result = await response.json();
 
     // if (result.status === "success") {
     //     return AntiFraude(values);

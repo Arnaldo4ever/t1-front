@@ -66,9 +66,9 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
      * 
      * @return Promise<Response>
     */
-
-    let res = await fetch(`${Crear_Tarjeta_API}`, {
+    const response = await fetch(`${Crear_Tarjeta_API}`, {
         method: "POST",
+        cache: "no-cache",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${Crear_Tarjeta_Token}`, // `${process.env.API_TOKEN}`
@@ -76,7 +76,7 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
         body: JSON.stringify({ ...data }),
     });
 
-    let result = await res.json();
+    let result = await response.json();
 
     if (result.status === "success") {
         let tarjeta_token = result.data.tarjeta.token;

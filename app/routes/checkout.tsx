@@ -6,16 +6,14 @@ import {
 	Form,
 	useNavigation,
 } from "@remix-run/react";
-// import { useEffect } from "react";
 import { json, type ActionFunction, type ActionFunctionArgs, redirect } from "@remix-run/node";
+import React from "react";
 
 //! Functions
 import { CrearTarjeta } from "./crear-tarjeta";
 
-//! Toaster Sonner
-// import { Toaster, toast } from 'sonner';
+//! Toastify
 import { Bounce, ToastContainer, toast } from "react-toastify";
-import React from "react";
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
 	//! Form DOM 
@@ -53,16 +51,12 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 		errors.nombre = "El campo Nombre en la Tarjeta es obligatorio.";
 	}
 
-	if (Object.keys(errors).length) {
-		return json({ errors });
-	} else {
+	if (!Object.keys(errors).length) {
 		await CrearTarjeta(values);
 		return redirect("/thank-you");
+	} else {
+		return json({ errors });
 	}
-	// 	errors: Object.keys(errors).length ? errors : CrearTarjeta(values),
-
-
-	// return json(values);
 };
 
 export default function Checkout() {
@@ -82,7 +76,17 @@ export default function Checkout() {
 
 	const notify = () => {
 		if (!toast.isActive(toastId.current)) {
-			toastId.current = toast.error(`${cvv2Error}`);
+			if (panError) {
+				toastId.current = toast.error(`${actionData.errors.pan}`);
+			} else if (cvv2Error) {
+				toastId.current = toast.error(`${actionData.errors.cvv2}`);
+			} else if (expMonthError) {
+				toastId.current = toast.error(`${actionData.errors.expiracion_mes}`);
+			} else if (expYearError) {
+				toastId.current = toast.error(`${actionData.errors.expiracion_anio}`);
+			} else if (nombreError) {
+				toastId.current = toast.error(`${actionData.errors.nombre}`);
+			}
 		}
 	}
 
@@ -96,346 +100,91 @@ export default function Checkout() {
 
 	return (
 		<>
-			<div className="max-w-full bg-slate-900 py-20">
-				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto">
-					<Form method="post" className="grid grid-cols-12 bg-white">
-						{/* Datos de Pago */}
-						<div className="col-span-12 md:col-span-7 md:border-r md:border-gray-300">
-							<div className="w-full p-10">
-								<div className="grid grid-cols-12 gap-4">
-									{/* Contacto */}
-									<div className="col-span-12">
-										<h3 className="block text-xl font-semibold text-gray-700">
-											Contacto
-										</h3>
-										<div className="relative mt-2 rounded shadow-sm">
-											<input
-												type="text"
-												name="email"
-												id="email"
-												className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-												placeholder="Correo electrónico"
-											/>
-										</div>
-										<div className="relative flex gap-x-2 mt-4">
-											<div className="flex items-center">
-												<input
-													id="suscripcion"
-													name="suscripcion"
-													type="checkbox"
-													defaultChecked
-													className="h-4 w-4 rounded-md border-gray-100 text-blue-600 focus:ring-blue-600 transition-all"
-												/>
-											</div>
-											<div className="text-sm leading-6">
-												<label htmlFor="suscripcion" className="font-normal text-gray-900">
-													Enviarme novedades y ofertas por correo electrónico
-												</label>
-											</div>
-										</div>
-									</div>
-									{/* Delivery */}
-									<div className="col-span-12 mt-5">
-										<div className="grid grid-cols-12 gap-4">
-											<div className="col-span-12">
-												<h3 className="text-xl font-medium leading-6 text-gray-900">
-													Delivery
-												</h3>
-												<div className="w-full mt-4">
-													<select
-														id="pais"
-														name="pais"
-														autoComplete="country-name"
-														className="block w-full rounded-md border-0 py-3.5 px-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6 transition-all outline-0"
-													>
-														<option value="COL">Colombia</option>
-														<option value="MEX">Mexico</option>
-														<option value="PRI">Puerto Rico</option>
-													</select>
-												</div>
-											</div>
-											<div className="col-span-6">
-												<input
-													type="text"
-													name="cliente_nombre"
-													id="cliente_nombre"
-													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-													placeholder="Nombre"
-												/>
-											</div>
-											<div className="col-span-6">
-												<input
-													type="text"
-													name="apellido_paterno"
-													id="apellido_paterno"
-													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-													placeholder="Apellido"
-												/>
-											</div>
-											<div className="col-span-12">
-												<input
-													type="text"
-													name="linea1"
-													id="linea1"
-													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-													placeholder="Dirección"
-												/>
-											</div>
-											<div className="col-span-12">
-												<input
-													type="text"
-													name="linea2"
-													id="linea2"
-													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-													placeholder="Apartamento, casa, etc... (opcional)"
-												/>
-											</div>
-											<div className="col-span-4">
-												<input
-													type="text"
-													name="ciudad"
-													id="ciudad"
-													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-													placeholder="Ciudad"
-												/>
-											</div>
-											<div className="col-span-4">
-												<input
-													type="text"
-													name="municipio"
-													id="municipio"
-													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-													placeholder="Municipio"
-												/>
-											</div>
-											<div className="col-span-4">
-												<input
-													type="text"
-													name="cp"
-													id="cp"
-													className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-													placeholder="Código Postal"
-												/>
-											</div>
-											<div className="col-span-12">
-												<div className="relative flex gap-x-2">
-													<div className="flex items-center">
-														<input
-															id="guardar_info"
-															name="guardar_info"
-															type="checkbox"
-															className="h-4 w-4 rounded-md border-gray-100 text-blue-600 focus:ring-blue-600 transition-all"
-														/>
-													</div>
-													<div className="text-sm leading-6">
-														<label htmlFor="guardar_info" className="font-normal text-gray-900">
-															Guardar esta información para una próxima vez
-														</label>
-													</div>
-												</div>
-											</div>
-											<div className="col-span-12 mt-5">
-												<h3 className="text-lg font-medium leading-6 text-gray-900">
-													Método de Envio
-												</h3>
-												<div className="relative flex gap-x-2 mt-4 border rounded-t-md p-5">
-													<div className="flex items-center">
-														<input
-															id="envio_internacional"
-															name="envio"
-															type="radio"
-															className="h-4 w-4 rounded-md border-gray-100 text-blue-600 focus:ring-blue-600 transition-all"
-														/>
-													</div>
-													<div className="text-sm leading-6 flex items-center justify-between w-full">
-														<label htmlFor="envio_internacional" className="font-normal text-gray-900">
-															Envio Internacional
-														</label>
-														<p className="font-sans font-semibold">$30.00</p>
-													</div>
-												</div>
-												<div className="relative flex gap-x-2 border border-t-0 rounded-b-md p-5">
-													<div className="flex items-center">
-														<input
-															id="envio_standard"
-															name="envio"
-															type="radio"
-															className="h-4 w-4 rounded-md border-gray-100 text-blue-600 focus:ring-blue-600 transition-all"
-														/>
-													</div>
-													<div className="text-sm leading-6 flex items-center justify-between w-full">
-														<label htmlFor="envio_standard" className="font-normal text-gray-900">
-															Stándard
-														</label>
-														<p className="font-sans font-semibold">$100.00</p>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-									{/* Credit Card */}
-									<div className="col-span-12 mt-5">
-										<h3 className="block text-xl font-semibold text-gray-700">
-											Payment / Pago
-										</h3>
-										<p className="font-sans text-gray-500 text-sm leading-6">Todas las transacciones son seguras y encriptadas</p>
-										{/* Card */}
-										<div className="grid grid-cols-12 gap-4 mt-3">
-											<div className="col-span-12">
-												<div className="rounded-md bg-gray-100 border border-t-0">
-													<div className="py-4 px-3 border bg-blue-50 border-blue-500 rounded-t-md">
-														<h4>Tarjeta de Crédito</h4>
-													</div>
-													<div className="py-3 px-3.5">
-														<div className="grid grid-cols-12 gap-4">
-															<div className="col-span-12">
+			<div className="max-w-full bg-gray-200">
+				<nav className="max-w-full bg-[#2E2E2E] py-3 md:py-4">
+					<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto">
+						<div className="grid grid-cols-12 gap-4">
+							<div className="col-span-12">
+								<div className="flex items-center justify-center align-middle">
+									<img src="/t1pagos.png" alt="" className="max-w-full h-12 object-center object-cover" draggable="false" />
+								</div>
+							</div>
+						</div>
+					</div>
+				</nav>
+				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto py-16">
+					<Form method="post" className="mt-3">
+						<div className="grid grid-cols-12 gap-4 md:gap-8">
+							{/* Datos de Pago */}
+							<div className="col-span-12 order-2 md:order-1">
+								<h3 className="font-sans text-xl md:text-2xl font-black leading-loose text-slate-900">Completa los datos de tu tarjeta</h3>
+							</div>
+							<div className="col-span-12 md:col-span-7 order-3 md:order-2">
+								<div className="w-full py-10 px-8 bg-white rounded-lg">
+									<div className="grid grid-cols-12 gap-4">
+										{/* Credit Card */}
+										<div className="col-span-12">
+											{/* Card */}
+											<div className="grid grid-cols-12 gap-4">
+												<div className="col-span-12">
+													<div className="grid grid-cols-12 gap-4">
+														<div className="col-span-12">
+															<label htmlFor="pan" className="text-sm font-semibold leading-loose text-slate-900">
+																Número de la Tarjeta
+															</label>
+															<div className="relative">
 																<input
 																	type="text"
 																	name="pan"
 																	id="pan"
-																	className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all mt-3"
-																	placeholder="Número de la Tarjeta"
+																	className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all mt-3"
+																	placeholder="1234 1234 1234 1234"
 																/>
+																<div className="absolute inset-y-0 right-0 mr-2 flex items-center">
+																	<img src="/credit-card.png" alt="" className="max-w-full h-auto object-center object-cover" draggable="false" />
+																</div>
 															</div>
-															<div className="col-span-5">
+														</div>
+														<div className="col-span-12">
+															<label htmlFor="nombre" className="text-sm font-semibold leading-loose text-slate-900">
+																Nombre en la Tarjeta
+															</label>
+															<input
+																type="text"
+																name="nombre"
+																id="nombre"
+																className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																placeholder="John Doe"
+															/>
+														</div>
+														<div className="col-span-6">
+															<label htmlFor="expiracion_mes" className="text-sm font-semibold leading-loose text-slate-900">
+																Fecha de vencimiento
+															</label>
+															<input
+																type="text"
+																name="expiracion_mes"
+																id="expiracion_mes"
+																className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																placeholder="Fecha de expiración (MM / AA)"
+															/>
+														</div>
+														<div className="col-span-6">
+															<label htmlFor="cvv2" className="text-sm font-semibold leading-loose text-slate-900">
+																Código de seguridad
+															</label>
+															<div className="relative">
 																<input
-																	type="text"
-																	name="expiracion_mes"
-																	id="expiracion_mes"
-																	className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																	placeholder="Fecha de expiración (MM / AA)"
-																/>
-															</div>
-															<div className="col-span-5">
-																<input
-																	type="text"
-																	name="expiracion_anio"
-																	id="expiracion_anio"
-																	className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																	placeholder="Fecha de expiración (MM / AA)"
-																/>
-															</div>
-															<div className="col-span-2">
-																<input
-																	type="text"
+																	type="password"
 																	name="cvv2"
 																	id="cvv2"
-																	className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																	placeholder="Código de seguridad"
+																	className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
+																	placeholder="000"
 																/>
-															</div>
-															<div className="col-span-12">
-																<input
-																	type="text"
-																	name="nombre"
-																	id="nombre"
-																	className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																	placeholder="Nombre en la Tarjeta"
-																/>
-															</div>
-															<div className="col-span-12">
-																<div className="relative flex gap-x-2">
-																	<div className="flex items-center">
-																		<input
-																			id="billingAddress"
-																			name="billingAddress"
-																			type="checkbox"
-																			defaultChecked
-																			className="h-4 w-4 rounded-md border-gray-100 text-blue-600 focus:ring-blue-600 transition-all"
-																		/>
-																	</div>
-																	<div className="text-sm leading-6">
-																		<label htmlFor="billingAddress" className="font-normal text-gray-900">
-																			Usar la dirección de envío como dirección de facturación
-																		</label>
-																	</div>
+																<div className="absolute inset-y-0 right-0 mr-2 flex items-center">
+																	<img src="/pin-number.png" alt="" className="max-w-full h-auto object-center object-cover" draggable="false" />
 																</div>
 															</div>
-															{/* <div className="col-span-12">
-																<div className="grid grid-cols-12 gap-4">
-																	<div className="col-span-12">
-																		<h3 className="text-xl font-medium leading-6 text-gray-900">
-																			Billing Address
-																		</h3>
-																		<div className="w-full mt-4">
-																			<select
-																				id="pais"
-																				name="pais"
-																				autoComplete="country-name"
-																				className="block w-full rounded-md border-0 py-3.5 px-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6 transition-all outline-0"
-																			>
-																				<option value="VEN">Venezuela</option>
-																				<option value="COL">Colombia</option>
-																				<option value="MEX">Mexico</option>
-																				<option value="PRI">Puerto Rico</option>
-																			</select>
-																		</div>
-																	</div>
-																	<div className="col-span-6">
-																		<input
-																			type="text"
-																			name="cliente_nombre"
-																			id="cliente_nombre"
-																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																			placeholder="Nombre"
-																		/>
-																	</div>
-																	<div className="col-span-6">
-																		<input
-																			type="text"
-																			name="apellido_paterno"
-																			id="apellido_paterno"
-																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																			placeholder="Apellido"
-																		/>
-																	</div>
-																	<div className="col-span-12">
-																		<input
-																			type="text"
-																			name="linea1"
-																			id="linea1"
-																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																			placeholder="Dirección"
-																		/>
-																	</div>
-																	<div className="col-span-12">
-																		<input
-																			type="text"
-																			name="linea2"
-																			id="linea2"
-																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																			placeholder="Apartamento, casa, etc... (opcional)"
-																		/>
-																	</div>
-																	<div className="col-span-4">
-																		<input
-																			type="text"
-																			name="ciudad"
-																			id="ciudad"
-																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																			placeholder="Ciudad"
-																		/>
-																	</div>
-																	<div className="col-span-4">
-																		<input
-																			type="text"
-																			name="municipio"
-																			id="municipio"
-																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																			placeholder="Municipio"
-																		/>
-																	</div>
-																	<div className="col-span-4">
-																		<input
-																			type="text"
-																			name="cp"
-																			id="cp"
-																			className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-																			placeholder="Código Postal"
-																		/>
-																	</div>
-																</div>
-															</div> */}
 														</div>
 													</div>
 												</div>
@@ -445,86 +194,33 @@ export default function Checkout() {
 								</div>
 								{/* Action */}
 								<div className="col-span-12 mt-5">
-									<div className="flex flex-col items-center justify-center align-middle">
-										<button type="submit" name="btn-trigger" value="submit-checkout" className="block w-full font-sans font-bold text-xl bg-blue-600 hover:bg-blue-700 text-white rounded hover:shadow-lg py-3 px-2 transition-all" disabled={navigation.state === "submitting" ? true : false} onClick={notify}>
+									<div className="flex items-center justify-end align-middle space-x-5">
+										<button type="button" className="font-sans font-semibold text-xl bg-red-400 hover:bg-red-500 text-white rounded-md hover:shadow-lg py-2 px-5 transition-all">Regresar</button>
+
+										<button type="submit" name="btn-trigger" value="submit-checkout" className="font-sans font-semibold text-xl bg-red-600 hover:bg-red-700 text-white rounded-md hover:shadow-lg py-2 px-5 transition-all" disabled={navigation.state === "submitting" ? true : false} onClick={notify}>
 											{
 												navigation.state === "submitting"
 													? "Enviando..."
-													: "Pagar ahora"
+													: "Continuar"
 											}
 										</button>
 									</div>
 								</div>
-								<div className="col-span-12 mt-20">
-									<hr />
-								</div>
-								<div className="col-span-12 mt-5">
-									<a href="#j" className="text-blue-500">Política de suscripción</a>
-								</div>
 							</div>
-						</div>
-						{/* Producto */}
-						<div className="col-span-12 md:col-span-5 bg-gray-100">
-							<div className="w-full p-10 sticky top-0 right-0 left-0">
-								<div className="grid grid-cols-12 gap-4">
-									<div className="col-span-12">
-										<div className="flex items-center justify-between">
-											<div className="c-product">
-												<h6 className="font-sans text-sm">The 3p Fulfilled Snowboard</h6>
-											</div>
-											<div className="c-product__price-label">
-												<p className="c-product__price font-sans text-sm">$2,629.95</p>
-											</div>
-										</div>
-									</div>
-									<div className="col-span-12">
-										<div className="flex items-center justify-between space-x-4">
-											<input
-												type="text"
-												name="cupon"
-												id="cupon"
-												className="font-sans block w-full text-sm rounded border-gray-300 py-3.5 px-2.5 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-0 transition-all"
-												placeholder="Cupón de descuento o tarjeta de regalo"
-											/>
-											<div className="flex flex-col items-center justify-center align-middle">
-												<button type="submit" className="font-sans text-base font-medium border-gray-300 bg-gray-200 hover:bg-gray-300 text-gray-500 rounded hover:shadow-lg py-3 px-2 ring-1 ring-inset ring-gray-300 outline-0 transition-all">Aplicar</button>
-											</div>
-										</div>
-									</div>
-									<div className="col-span-12 space-y-3">
-										<div className="flex items-center justify-between">
-											<div className="c-product">
-												<h6 className="font-sans text-sm">Subtotal</h6>
-											</div>
-											<div className="c-product__price-label">
-												<p className="c-product__price font-sans text-sm font-medium">$2,629.95</p>
-											</div>
-										</div>
-										<div className="flex items-center justify-between">
-											<div className="c-product">
-												<h6 className="font-sans text-sm">Shipping</h6>
-											</div>
-											<div className="c-product__price-label">
-												<p className="c-product__price font-sans text-sm">Enter shipping address</p>
-											</div>
-										</div>
-										<div className="flex items-center justify-between">
-											<div className="c-product">
-												<h6 className="font-sans text-sm">Estimated taxes</h6>
-											</div>
-											<div className="c-product__price-label">
-												<p className="c-product__price font-sans text-sm font-medium">$499.69</p>
-											</div>
-										</div>
-										<div className="flex items-center justify-between">
-											<div className="c-product">
-												<h6 className="font-sans text-xl font-semibold">Total</h6>
-											</div>
-											<div className="c-product__price-label">
-												<div className="c-product__price font-sans text-sm font-medium">
-													<span className="font-light text-gray-500">COP  </span>
-													<input type="text" name="monto" id="monto" className="text-xl font-medium" defaultValue="99999" />
+							{/* Producto */}
+							<div className="col-span-12 md:col-span-5 order-1 md:order-4">
+								<div className="w-full py-5 px-8 sticky top-0 right-0 left-0 bg-white rounded-lg">
+									<div className="grid grid-cols-12 gap-4">
+										<div className="col-span-12">
+											<div className="flex flex-col space-y-5">
+												<h4 className="font-sans font-black text-lg text-slate-900">Detalles de la compra</h4>
+												<div className="relative">
+													<div className="flex items-center justify-start space-x-2">
+														<img src="/shop.png" alt="Nombre del Comercio" className="max-w-full h-10 object-center object-cover" draggable="false" />
+														<p className="font-sans font-semibold text-base text-slate-900">Nombre de la tienda</p>
+													</div>
 												</div>
+												<p className="font-sans font-semibold text-lg text-slate-900">Total de la compra: $<b className="font-sans font-black text-lg text-slate-900">1.456.00</b></p>
 											</div>
 										</div>
 									</div>
@@ -535,7 +231,7 @@ export default function Checkout() {
 				</div >
 			</div >
 			{/* <Toaster position="bottom-right" richColors closeButton /> */}
-			<ToastContainer
+			< ToastContainer
 				position="bottom-right"
 				autoClose={5000}
 				hideProgressBar={false}
