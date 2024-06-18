@@ -15,7 +15,7 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
     * @return <Object>
     */
     let data = {
-        "monto": values.monto,
+        "monto": 14500,
         "pais": values.pais,
         "moneda": "MXN",
         // "descripcion": "string",
@@ -82,12 +82,25 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
         "id": "0",
         // "id_externo": "ba4e968d-95d0-4a4d-928b-808a58ffbb55",
         //     "creacion_externa": "2019-08-24T14:15:22Z",
-        //     "nombre": "string",
-        //     "apellido_paterno": "string",
+        "nombre": "Andres",
+        "apellido_paterno": "Gutierrez",
         //     "apellido_materno": "string",
-        //     "email": "usuario@t1pagos.com",
-        //     "telefono": {},
-        //     "direccion": {}
+        "email": "andres.4ever@gmail.com",
+        "telefono": {
+            "tipo": "movil",
+            "codigo_pais": "57",
+            "codigo_area": "string",
+            "prefijo": "string",
+            "numero": "3134440041",
+            "extension": 0
+        },
+        "direccion": {
+            "linea1": " Cra. 8 No. 9 - 83, Bogotá, D.C",
+            "cp": "111711",
+            "municipio": "La Candelaria",
+            "estado": "Bogotá",
+            "pais": "COL",
+        }
         // },
         // "PlanPagos": {
         //     "plan": "msi",

@@ -17,8 +17,6 @@ import {
 import stylesheet from "./tailwind.css?url";
 
 //! Toastify
-import { ToastContainer, toast } from 'react-toastify';
-
 import 'react-toastify/dist/ReactToastify.css';
 // minified version is also included
 // import 'react-toastify/dist/ReactToastify.min.css';
@@ -55,10 +53,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	);
 }
 
-// export async function loader({ request }: LoaderFunctionArgs) {
-// 	return null;
-// }
-
 export default function App() {
 	return (
 		<>
@@ -76,30 +70,30 @@ export function ErrorBoundary() {
 		switch (error.status) {
 			case 401:
 				heading = "401 No Autorizado";
-				message = "Ups! Parece que has intentado acceder a una página a la cual no tienes suficientes privilegios.";
+				message = "¡Ups! Parece que has intentado acceder a una página a la cual no tienes suficientes privilegios.";
 				break;
 			case 404:
 				heading = "404 No Encontrado";
-				message = "Ups! Parece que has intentado acceder a una página la cual no existe.";
+				message = "¡Ups! Parece que has intentado acceder a una página la cual no existe.";
 				break;
 		}
 	}
 	const errorMessage = error instanceof Error ? error.message : null;
 	return (
 		<>
-			<section className="max-w-full h-screen">
+			<section className="max-w-full h-screen bg-gray-200">
 				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto h-full">
 					<div className="grid grid-cols-12 gap-4 h-full">
 						<div className="col-span-12">
 							<div className="flex flex-col items-center justify-center align-middle h-full">
-								<h2 className="font-sans text-4xl font-bold text-red-500 leading-loose">{heading}</h2>
+								<h2 className="font-sans text-4xl font-bold text-red-600 leading-loose">{heading}</h2>
 								<p className="font-sans text-base font-normal text-slate-900">{message}</p>
 								{errorMessage && (
-									<div className="border border-red-500 p-5 my-5">
-										<p><b>Mensaje del Error</b>: {errorMessage}</p>
+									<div className="bg-red-50 border-2 border-red-600 text-slate-900 rounded red-700 p-5 my-5">
+										<p><b>Error</b>: {errorMessage}</p>
 									</div>
 								)}
-								<a href="/">
+								<a href="/" className="font-sans rounded-md bg-red-600 hover:bg-red-700 text-white py-2 px-5 transition-all mt-5">
 									Volver al Inicio
 								</a>
 							</div>

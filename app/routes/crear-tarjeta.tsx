@@ -11,10 +11,20 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
     * Datos requeridos de la Tarjeta
     * Asignamos los valores de la data recibida de manera predeterminada para optimizar el tiempo de respuesta de la API
     * permitiendo pasar el resto como objeto para ser utilizado por las demas funciones, EJ: CrearCargo(values, token_tarjeta);
-    * 
+    * ----
+    * Instanciamos la variable date para obtener el mes y el año específicos seleccionados por el cliente 
+    * ya que todo esta incluido en un solo input y almacenamos los valores en una variable 
+    * para luego enviarlos en la data de CrearTarjeta
     * @var data
     * @return <token_tarjeta>
     */
+
+    //! Obtener el mes y el año específico
+    // const date = new Date(values.fecha);
+
+    // let exp_mes = date.getMonth() + 1;
+    // let exp_anio = date.getFullYear();
+
     let data = {
         "nombre": values.nombre,
         "pan": values.pan,
@@ -25,19 +35,19 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
         //     "linea1": "string",
         //     "linea2": "string",
         //     "linea3": "string",
-        //     "cp": "string",
-        //     "telefono": {
-        //         "tipo": "no_definido",
-        //         "codigo_pais": "string",
-        //         "codigo_area": "string",
-        //         "prefijo": "string",
-        //         "numero": "5566778899",
-        //         "extension": 0
-        //     },
-        //     "municipio": "string",
+        "cp": "111711",
+        "telefono": {
+            "tipo": "movil",
+            "codigo_pais": "57",
+            // "codigo_area": "string",
+            // "prefijo": "string",
+            "numero": "3134440041",
+            // "extension": 0
+        },
+        "municipio": "La Candelaria",
         //     "ciudad": "string",
-        //     "estado": "str",
-        //     "pais": "str",
+        "estado": "Bogotá",
+        "pais": "COL",
         //     "referencia_1": "string",
         //     "referencia_2": "string",
         //     "longitud": -90,
