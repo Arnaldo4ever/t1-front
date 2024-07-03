@@ -16,14 +16,8 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
     * ya que todo esta incluido en un solo input y almacenamos los valores en una variable 
     * para luego enviarlos en la data de CrearTarjeta
     * @var data
-    * @return <token_tarjeta>
+    * @returns Object<token_tarjeta>
     */
-
-    //! Obtener el mes y el año específico
-    // const date = new Date(values.fecha);
-
-    // let exp_mes = date.getMonth() + 1;
-    // let exp_anio = date.getFullYear();
 
     let data = {
         "nombre": values.nombre,
@@ -35,19 +29,19 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
         //     "linea1": "string",
         //     "linea2": "string",
         //     "linea3": "string",
-        "cp": "111711",
-        "telefono": {
-            "tipo": "movil",
-            "codigo_pais": "57",
-            // "codigo_area": "string",
-            // "prefijo": "string",
-            "numero": "3134440041",
-            // "extension": 0
-        },
-        "municipio": "La Candelaria",
+        // "cp": "111711",
+        // "telefono": {
+        // "tipo": "movil",
+        // "codigo_pais": "57",
+        // "codigo_area": "string",
+        // "prefijo": "string",
+        // "numero": "3134440041",
+        // "extension": 0
+        // },
+        // "municipio": "La Candelaria",
         //     "ciudad": "string",
-        "estado": "Bogotá",
-        "pais": "COL",
+        // "estado": "Bogotá",
+        // "pais": "COL",
         //     "referencia_1": "string",
         //     "referencia_2": "string",
         //     "longitud": -90,
@@ -81,16 +75,15 @@ export async function CrearTarjeta(values: NonNullable<object>): Promise<Respons
         cache: "no-cache",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${Crear_Tarjeta_Token}`, // `${process.env.API_TOKEN}`
+            "Authorization": `Bearer ${Crear_Tarjeta_Token}`,
         },
         body: JSON.stringify({ ...data }),
     });
 
-    let result = await response.json();
+    const result = await response.json();
 
     if (result.status === "success") {
         let tarjeta_token = result.data.tarjeta.token;
-
         return await CrearCargo(values, tarjeta_token);
     }
 

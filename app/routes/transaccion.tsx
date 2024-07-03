@@ -51,10 +51,12 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         errors.nombre = "El campo Nombre en la Tarjeta es obligatorio.";
     }
 
-    const pagoPromise = new Promise((resolve) => {
+    return new Promise((resolve) => {
         setTimeout(() => {
             if (!Object.keys(errors).length) {
-                resolve(CrearTarjeta(values));
+                resolve(CrearTarjeta(values).then(() => {
+                    return redirectWithSuccess("/thank-you", "¡Pago realizado exitosamente!");
+                }));
             } else {
                 if (errors.pan) {
                     resolve(jsonWithError(values, `${errors.pan}`));
@@ -69,10 +71,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
                 }
             }
         }, 1500);
-    });
-
-    return pagoPromise.then((val) => {
-        return redirectWithSuccess("/thank-you", "¡Pago realizado exitosamente!");
     });
 };
 

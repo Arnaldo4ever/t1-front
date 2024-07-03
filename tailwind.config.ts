@@ -27,5 +27,9 @@ export default {
 			sans: ['Open Sans', ...defaultTheme.fontFamily.sans],
 		},
 	},
-	plugins: [],
+	plugins: [
+		require('@tailwindcss/forms'),
+		require('@tailwindcss/typography'),
+		// ...
+	],
 } satisfies Config

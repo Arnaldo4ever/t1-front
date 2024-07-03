@@ -4,6 +4,7 @@ import { json } from "@remix-run/node";
 
 //! Functions
 import { AntiFraude } from "./anti-fraude";
+import { ConsultarCargo } from "./consultar-cargo";
 
 export async function CrearCargo(values: NonNullable<object>, tarjeta_token: NonNullable<object>): Promise<Response> {
 
@@ -16,7 +17,7 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
     */
     let data = {
         "monto": 14500,
-        "pais": values.pais,
+        // "pais": values.pais,
         "moneda": "MXN",
         // "descripcion": "string",
         // "capturar": true,
@@ -25,44 +26,34 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
         "tarjeta": {
             "token": tarjeta_token
         },
-        // "credito": {
-        //     "formato": "claroshop",
-        //     "sucursal": 0
-        // },
-        // "transferencia": {
-        //     "formato": "string",
-        //     "concepto": "string",
-        //     "fecha_inicio": "2019-08-24T14:15:22Z",
-        //     "fecha_fin": "2019-08-24T14:15:22Z"
-        // },
-        "pedido": {
+        // "pedido": {
             // "id_externo": "string",
             // "creacion": "2019-08-24T14:15:22Z",
-            "direccion_envio": {
-                "linea1": values.linea1,
-                "linea2": values.linea2,
-                "linea3": values.linea3,
-                "cp": values.cp,
-                // "telefono": {
-                //     "tipo": "no_definido",
-                //     "codigo_pais": "string",
-                //     "codigo_area": "string",
-                //     "prefijo": "string",
-                //     "numero": "5566778899",
-                //     "extension": 0
-                // },
-                "municipio": values.municipio,
-                "ciudad": values.ciudad,
-                // "estado": values.estado
-                "pais": values.pais,
-                // "referencia_1": "string",
-                // "referencia_2": "string",
-                // "longitud": -90,
-                // "latitud": -90,
-                "nombre": values.cliente_nombre,
-                "apellido_paterno": values.apellido_paterno,
-                "apellido_materno": values.apellido_materno,
-            },
+            // "direccion_envio": {
+            //     "linea1": values.linea1,
+            //     "linea2": values.linea2,
+            //     "linea3": values.linea3,
+            //     "cp": values.cp,
+            // "telefono": {
+            //     "tipo": "no_definido",
+            //     "codigo_pais": "string",
+            //     "codigo_area": "string",
+            //     "prefijo": "string",
+            //     "numero": "5566778899",
+            //     "extension": 0
+            // },
+            // "municipio": values.municipio,
+            // "ciudad": values.ciudad,
+            // "estado": values.estado
+            // "pais": values.pais,
+            // "referencia_1": "string",
+            // "referencia_2": "string",
+            // "longitud": -90,
+            // "latitud": -90,
+            // "nombre": values.cliente_nombre,
+            // "apellido_paterno": values.apellido_paterno,
+            // "apellido_materno": values.apellido_materno,
+            // },
             // "peso": 0,
             // "articulos": [],
             // "total_articulos": 0,
@@ -77,30 +68,30 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
             // "device_fingerprint": "string",
             // "ip_cliente": "192.168.0.1",
             // "datos_comercio": {}
-        },
+        // },
         // "cliente": {
-        "id": "0",
+        // "id": "0",
         // "id_externo": "ba4e968d-95d0-4a4d-928b-808a58ffbb55",
         //     "creacion_externa": "2019-08-24T14:15:22Z",
-        "nombre": "Andres",
-        "apellido_paterno": "Gutierrez",
+        // "nombre": "Andres",
+        // "apellido_paterno": "Gutierrez",
         //     "apellido_materno": "string",
-        "email": "andres.4ever@gmail.com",
-        "telefono": {
-            "tipo": "movil",
-            "codigo_pais": "57",
-            "codigo_area": "string",
-            "prefijo": "string",
-            "numero": "3134440041",
-            "extension": 0
-        },
-        "direccion": {
-            "linea1": " Cra. 8 No. 9 - 83, Bogotá, D.C",
-            "cp": "111711",
-            "municipio": "La Candelaria",
-            "estado": "Bogotá",
-            "pais": "COL",
-        }
+        // "email": "andres.4ever@gmail.com",
+        // "telefono": {
+        //     "tipo": "movil",
+        //     "codigo_pais": "57",
+        //     "codigo_area": "string",
+        //     "prefijo": "string",
+        //     "numero": "3134440041",
+        //     "extension": 0
+        // },
+        // "direccion": {
+        //     "linea1": " Cra. 8 No. 9 - 83, Bogotá, D.C",
+        //     "cp": "111711",
+        //     "municipio": "La Candelaria",
+        //     "estado": "Bogotá",
+        //     "pais": "COL",
+        // }
         // },
         // "PlanPagos": {
         //     "plan": "msi",
@@ -135,11 +126,13 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
         body: JSON.stringify({ ...data }),
     });
 
-    let result = await response.json();
+    const result = await response.json();
 
-    // if (result.status === "success") {
-    //     return AntiFraude(values);
-    // }
+    // console.log(result);
+
+    if (result.status === "success") {
+        return ConsultarCargo(result.data.cargo.id);
+    }
 
     return json(result);
 }

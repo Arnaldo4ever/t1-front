@@ -1,20 +1,20 @@
 /* eslint-disable prefer-const */
 //! Core Imports
-import { json, type LinksFunction, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/node';
-import React, { createContext, useEffect, useState } from "react";
+import { type LinksFunction, type MetaFunction } from '@remix-run/node';
+import React from "react";
 import {
 	Links,
 	Meta,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
-	useLoaderData,
 	isRouteErrorResponse,
 	useRouteError,
 } from "@remix-run/react";
 
 //! TailwindCSS
 import stylesheet from "./tailwind.css?url";
+import custom from "./styles/custom.css?url";
 
 //! Toastify
 import 'react-toastify/dist/ReactToastify.css';
@@ -30,6 +30,7 @@ export const meta: MetaFunction = () => {
 
 export const links: LinksFunction = () => [
 	{ rel: 'stylesheet', href: stylesheet },
+	{ rel: 'stylesheet', href: custom },
 	{ rel: 'preconnect', href: 'https://fonts.googleapis.com' },
 	{ rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
 	{ rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap' },
@@ -66,6 +67,7 @@ export function ErrorBoundary() {
 	const error = useRouteError();
 	let heading = "¡Algo salio mal!";
 	let message = "Disculpe, ha ocurrido un error inesperado. Por favor intente nuevamente o contáctenos si el problema persiste.";
+
 	if (isRouteErrorResponse(error)) {
 		switch (error.status) {
 			case 401:
@@ -78,7 +80,9 @@ export function ErrorBoundary() {
 				break;
 		}
 	}
+
 	const errorMessage = error instanceof Error ? error.message : null;
+
 	return (
 		<>
 			<section className="max-w-full h-screen bg-gray-200">
