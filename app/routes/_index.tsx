@@ -9,7 +9,8 @@ import {
 	useLoaderData,
 } from "@remix-run/react";
 import { json, type ActionFunction, type ActionFunctionArgs, redirect, type LoaderFunctionArgs, defer } from "@remix-run/node";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 
 //! Functions
 import { CrearTarjeta } from "./crear-tarjeta";
@@ -96,30 +97,92 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	return json({ toast }, { headers });
 };
 
+const useRunAfterUpdate = () => {
+	const afterPaintRef = React.useRef(null);
+	React.useLayoutEffect(() => {
+		if (afterPaintRef.current) {
+			afterPaintRef.current();
+			afterPaintRef.current = null;
+		}
+	});
+
+	const runAfterUpdate = (fn) => {
+		afterPaintRef.current = fn;
+	};
+
+	return runAfterUpdate;
+};
+
+const strip = value => value.replace(/[^a-zA-Z\s]/g, "");
+
+function filterOut(text, cursor) {
+	const beforeCursor = text.slice(0, cursor);
+	const afterCursor = text.slice(cursor, text.length);
+
+	const filterBeforeCursor = strip(beforeCursor);
+	const fitlerAfterCursor = strip(afterCursor);
+
+	const newText = filterBeforeCursor + fitlerAfterCursor;
+	const newCursor = filterBeforeCursor.length;
+
+	return [newText, newCursor];
+}
+
 export default function Checkout() {
 	const actionData = useActionData<typeof action>();
 	const { toast } = useLoaderData<typeof loader>();
 	const navigation = useNavigation();
 	const [loading, setLoading] = useState(false);
+	const [name, setName] = useState("");
+	const runAfterUpdate = useRunAfterUpdate();
+	const [card, setCard] = useState();
+	const inputCard = useRef();
+
+	const handleNameChange = e => {
+		const input = e.target;
+		const text = input.value;
+		const cursor = input.selectionStart;
+		const [newName, newCursor] = filterOut(text, cursor);
+
+		setName(newName);
+
+		runAfterUpdate(() => {
+			input.selectionStart = newCursor;
+			input.selectionEnd = newCursor;
+		})
+	}
+
+	const handleChange = () => {
+		const cardValue = inputCard.current.value
+			.replace(/\D/g, "")
+			.match(/(\d{0,4})(\d{0,4})(\d{0,4})(\d{0,4})/);
+		inputCard.current.value = !cardValue[2]
+			? cardValue[1]
+			: `${cardValue[1]} ${cardValue[2]}${`${cardValue[3] ? ` ${cardValue[3]}` : ""
+			}`}${`${cardValue[4] ? ` ${cardValue[4]}` : ""}`}`;
+		const numbers = inputCard.current.value.replace(/(\D)/g, "");
+		setCard(numbers);
+	};
+
 
 	useEffect(() => {
+
+		// notify on a toast message
 		if (toast) {
-			// notify on a toast message
 			notify(toast.message, { type: toast.type });
 		}
 
-		// setLoading(true);
+		setLoading(true);
 
-		// setTimeout(() => {
-		// 	setLoading(false);
-		// }, 3000);
-
+		setTimeout(() => {
+			setLoading(false);
+		}, 3000);
 	}, [toast]);
 
 	return (
 		<>
 			{loading
-				? <PuffLoader size={100} color={'#D0021B'} loading={loading} />
+				? <PuffLoader color={'#D0021B'} loading={loading} className="m-auto flex items-center justify-center align-middle" />
 				: <div className="max-w-full bg-gray-100">
 					<Navbar />
 					<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto py-16">
@@ -127,7 +190,7 @@ export default function Checkout() {
 							<div className="grid grid-cols-12 gap-4 md:gap-8">
 								{/* Datos de Pago */}
 								<div className="col-span-12 order-2 md:order-1">
-									<h3 className="font-sans text-xl md:text-2xl font-black leading-loose text-slate-900">Completa los datos de tu tarjeta</h3>
+									<h3 className="font-sans text-xl md:text-2xl font-black leading-loose text-[#2E2E2E]">Completa los datos de tu tarjeta</h3>
 								</div>
 								<div className="col-span-12 md:col-span-7 order-3 md:order-2">
 									<div className="w-full py-10 px-8 bg-white rounded-lg shadow-lg">
@@ -139,17 +202,22 @@ export default function Checkout() {
 													<div className="col-span-12">
 														<div className="grid grid-cols-12 gap-4">
 															<div className="col-span-12">
-																<label htmlFor="pan" className="text-sm font-semibold leading-loose text-slate-900">
+																<label htmlFor="pan" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
 																	Número de la Tarjeta
 																</label>
 																<div className="relative">
 																	<input
-																		type="number"
+																		type="tel"
+																		inputMode="numeric"
+																		autoComplete="cc-number"
 																		name="pan"
 																		id="pan"
-																		className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 pl-4 pr-14 text-gray-900 focus:border-blue-500 outline-0 transition-all mt-3"
-																		placeholder="1234 1234 1234 1234"
-																		maxLength={18}
+																		className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
+																		placeholder="0000 0000 0000 0000 000"
+																		pattern="[0-9\s]{13,19}"
+																		onChange={handleChange}
+																		ref={inputCard}
+																		maxLength={19}
 																	/>
 																	<div className="absolute inset-y-0 right-0 mr-2 flex items-center">
 																		<img src="/credit-card.png" alt="" className="max-w-full h-auto object-center object-cover" draggable="false" />
@@ -157,25 +225,31 @@ export default function Checkout() {
 																</div>
 															</div>
 															<div className="col-span-12">
-																<label htmlFor="nombre" className="text-sm font-semibold leading-loose text-slate-900">
+																<label htmlFor="nombre" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
 																	Nombre en la Tarjeta
 																</label>
 																<input
 																	type="text"
 																	name="nombre"
 																	id="nombre"
-																	className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 px-4 text-gray-900 focus:border-blue-500 outline-0 transition-all"
-																	placeholder="John F Doe"
+																	autoComplete="cc-family-name"
+																	className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
+																	placeholder="Pedro Perez"
+																	value={name}
+																	onChange={handleNameChange}
+																	minLength={1}
+																	maxLength={60}
 																/>
 															</div>
-															<div className="col-span-12 md:col-span-4">
-																<label htmlFor="expiracion_mes" className="text-sm font-semibold leading-loose text-slate-900">
+															<div className="col-span-12 md:col-span-6 lg:col-span-4">
+																<label htmlFor="expiracion_mes" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
 																	F. Expiración Mes
 																</label>
 																<select
 																	name="expiracion_mes"
 																	id="expiracion_mes"
-																	className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 px-4 text-gray-900 focus:border-blue-500 outline-0 transition-all form-select"
+																	className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all form-select cursor-pointer"
+																	autoComplete="cc-exp-month"
 																>
 																	<option>Seleccionar mes</option>
 																	<option value="01">Enero</option>
@@ -192,31 +266,34 @@ export default function Checkout() {
 																	<option value="12">Diciembre</option>
 																</select>
 															</div>
-															<div className="col-span-12 md:col-span-4">
-																<label htmlFor="expiracion_anio" className="text-sm font-semibold leading-loose text-slate-900">
+															<div className="col-span-12 md:col-span-6 lg:col-span-4">
+																<label htmlFor="expiracion_anio" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
 																	F. Expiración Año
 																</label>
 																<input
-																	type="number"
+																	type="tel"
+																	inputMode="numeric"
 																	name="expiracion_anio"
 																	id="expiracion_anio"
-																	className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 px-4 text-gray-900 focus:border-blue-500 outline-0 transition-all appearance-none"
-																	placeholder="(AAAA)"
+																	autoComplete="cc-exp-year"
+																	className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
+																	placeholder="2020"
+																	maxLength={4}
 																/>
 															</div>
-															<div className="col-span-12 md:col-span-4">
-																<label htmlFor="cvv2" className="text-sm font-semibold leading-loose text-slate-900">
-																	Código de seguridad <span className="font-bold text-gray-900">(CVV2)</span>
+															<div className="col-span-12 lg:col-span-4">
+																<label htmlFor="cvv2" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
+																	Código de seguridad <span className="font-bold text-[#2E2E2E]">(CVV2)</span>
 																</label>
 																<div className="relative">
 																	<input
 																		type="password"
 																		name="cvv2"
 																		id="cvv2"
-																		className="font-sans block w-full text-sm rounded-md border border-gray-500 py-3.5 px-4 text-gray-900 focus:border-blue-500 outline-0 transition-all"
-																		placeholder="000"
+																		className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
+																		placeholder="1234"
 																		minLength={3}
-																		maxLength={5}
+																		maxLength={4}
 																	/>
 																	<div className="absolute inset-y-0 right-0 mr-2 flex items-center">
 																		<img src="/pin-number.png" alt="" className="max-w-full h-auto object-center object-cover" draggable="false" />
@@ -250,14 +327,14 @@ export default function Checkout() {
 										<div className="grid grid-cols-12 gap-4">
 											<div className="col-span-12">
 												<div className="flex flex-col space-y-5">
-													<h4 className="font-sans font-black text-lg text-slate-900">Detalles de la compra</h4>
+													<h4 className="font-sans font-black text-2xl text-[#2E2E2E]">Detalles de la compra</h4>
 													<div className="relative">
 														<div className="flex items-center justify-start space-x-2">
 															<img src="/shop.png" alt="Nombre del Comercio" className="max-w-full h-10 object-center object-cover" draggable="false" />
-															<p className="font-sans font-semibold text-base text-slate-900">Nombre de la tienda</p>
+															<p className="font-sans font-semibold text-base text-[#2E2E2E]">Nombre de la tienda</p>
 														</div>
 													</div>
-													<p className="font-sans font-semibold text-lg text-slate-900">Total de la compra: $<b className="font-sans font-black text-lg text-slate-900">1.456.00</b></p>
+													<p className="font-sans font-semibold text-base text-[#2E2E2E]">Total de la compra: <b className="font-sans font-black text-2xl text-[#2E2E2E]">$1.456.00</b></p>
 												</div>
 											</div>
 										</div>

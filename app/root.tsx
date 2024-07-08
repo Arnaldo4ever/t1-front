@@ -91,9 +91,9 @@ export function ErrorBoundary() {
 						<div className="col-span-12">
 							<div className="flex flex-col items-center justify-center align-middle h-full">
 								<h2 className="font-sans text-4xl font-bold text-red-600 leading-loose">{heading}</h2>
-								<p className="font-sans text-base font-normal text-slate-900">{message}</p>
+								<p className="font-sans text-base font-normal text-[#2E2E2E]">{message}</p>
 								{errorMessage && (
-									<div className="bg-red-50 border-2 border-red-600 text-slate-900 rounded red-700 p-5 my-5">
+									<div className="bg-red-50 border-2 border-red-600 text-[#2E2E2E] rounded red-700 p-5 my-5">
 										<p><b>Error</b>: {errorMessage}</p>
 									</div>
 								)}
