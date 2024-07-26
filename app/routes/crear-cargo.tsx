@@ -128,8 +128,6 @@ export async function CrearCargo(values: NonNullable<object>, tarjeta_token: Non
 
     const result = await response.json();
 
-    // console.log(result);
-
     if (result.status === "success") {
         return ConsultarCargo(result.data.cargo.id);
     }

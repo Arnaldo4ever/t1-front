@@ -7,6 +7,8 @@ import {
 	useNavigation,
 	useFetcher,
 	useLoaderData,
+	useSubmit,
+	useNavigate,
 } from "@remix-run/react";
 import { json, type ActionFunction, type ActionFunctionArgs, redirect, type LoaderFunctionArgs, defer } from "@remix-run/node";
 import React, { useEffect, useRef, useState } from "react";
@@ -19,11 +21,8 @@ import { CrearTarjeta } from "./crear-tarjeta";
 import { Bounce, ToastContainer, toast as notify } from "react-toastify";
 import { jsonWithSuccess, jsonWithError, getToast, redirectWithSuccess, jsonWithInfo } from "remix-toast";
 
-//! Loader
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import PuffLoader from "react-spinners/PuffLoader";
+//! Navbar Layout
 import Navbar from "../layouts/navbar";
-
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
 	//! Form Data
@@ -59,10 +58,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 		errors.nombre = "El campo Nombre en la tarjeta es obligatorio.";
 	}
 
-	/**
-	 * !Promise
-	 * @return Resolve <Response>
-	 */
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			if (!Object.keys(errors).length) {
@@ -98,8 +93,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 const useRunAfterUpdate = () => {
-	const afterPaintRef = React.useRef(null);
-	React.useLayoutEffect(() => {
+	const afterPaintRef = useRef(null);
+
+	React.useEffect(() => {
 		if (afterPaintRef.current) {
 			afterPaintRef.current();
 			afterPaintRef.current = null;
@@ -132,11 +128,15 @@ export default function Checkout() {
 	const actionData = useActionData<typeof action>();
 	const { toast } = useLoaderData<typeof loader>();
 	const navigation = useNavigation();
+	const navigate = useNavigate();
 	const [loading, setLoading] = useState(false);
 	const [name, setName] = useState("");
 	const runAfterUpdate = useRunAfterUpdate();
 	const [card, setCard] = useState();
-	const inputCard = useRef();
+	const inputCard = useRef<HTMLFormElement>(null);
+	const submit = useSubmit();
+
+	let formRef = useRef<HTMLFormElement>(null);
 
 	const handleNameChange = e => {
 		const input = e.target;
@@ -156,148 +156,146 @@ export default function Checkout() {
 		const cardValue = inputCard.current.value
 			.replace(/\D/g, "")
 			.match(/(\d{0,4})(\d{0,4})(\d{0,4})(\d{0,4})/);
+
 		inputCard.current.value = !cardValue[2]
 			? cardValue[1]
 			: `${cardValue[1]} ${cardValue[2]}${`${cardValue[3] ? ` ${cardValue[3]}` : ""
 			}`}${`${cardValue[4] ? ` ${cardValue[4]}` : ""}`}`;
+
 		const numbers = inputCard.current.value.replace(/(\D)/g, "");
+
 		setCard(numbers);
 	};
 
-
 	useEffect(() => {
-
-		// notify on a toast message
 		if (toast) {
 			notify(toast.message, { type: toast.type });
 		}
-
-		setLoading(true);
-
-		setTimeout(() => {
-			setLoading(false);
-		}, 3000);
 	}, [toast]);
 
 	return (
 		<>
-			{loading
-				? <PuffLoader color={'#D0021B'} loading={loading} className="m-auto flex items-center justify-center align-middle" />
-				: <div className="max-w-full bg-gray-100">
-					<Navbar />
-					<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto py-16">
-						<Form method="post" className="mt-3">
-							<div className="grid grid-cols-12 gap-4 md:gap-8">
-								{/* Datos de Pago */}
-								<div className="col-span-12 order-2 md:order-1">
-									<h3 className="font-sans text-xl md:text-2xl font-black leading-loose text-[#2E2E2E]">Completa los datos de tu tarjeta</h3>
-								</div>
-								<div className="col-span-12 md:col-span-7 order-3 md:order-2">
-									<div className="w-full py-10 px-8 bg-white rounded-lg shadow-lg">
-										<div className="grid grid-cols-12 gap-4">
-											{/* Credit Card */}
-											<div className="col-span-12">
-												{/* Card */}
-												<div className="grid grid-cols-12 gap-4">
-													<div className="col-span-12">
-														<div className="grid grid-cols-12 gap-4">
-															<div className="col-span-12">
-																<label htmlFor="pan" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
-																	Número de la Tarjeta
-																</label>
-																<div className="relative">
-																	<input
-																		type="tel"
-																		inputMode="numeric"
-																		autoComplete="cc-number"
-																		name="pan"
-																		id="pan"
-																		className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
-																		placeholder="0000 0000 0000 0000 000"
-																		pattern="[0-9\s]{13,19}"
-																		onChange={handleChange}
-																		ref={inputCard}
-																		maxLength={19}
-																	/>
-																	<div className="absolute inset-y-0 right-0 mr-2 flex items-center">
-																		<img src="/credit-card.png" alt="" className="max-w-full h-auto object-center object-cover" draggable="false" />
-																	</div>
-																</div>
-															</div>
-															<div className="col-span-12">
-																<label htmlFor="nombre" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
-																	Nombre en la Tarjeta
-																</label>
-																<input
-																	type="text"
-																	name="nombre"
-																	id="nombre"
-																	autoComplete="cc-family-name"
-																	className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
-																	placeholder="Pedro Perez"
-																	value={name}
-																	onChange={handleNameChange}
-																	minLength={1}
-																	maxLength={60}
-																/>
-															</div>
-															<div className="col-span-12 md:col-span-6 lg:col-span-4">
-																<label htmlFor="expiracion_mes" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
-																	F. Expiración Mes
-																</label>
-																<select
-																	name="expiracion_mes"
-																	id="expiracion_mes"
-																	className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all form-select cursor-pointer"
-																	autoComplete="cc-exp-month"
-																>
-																	<option>Seleccionar mes</option>
-																	<option value="01">Enero</option>
-																	<option value="02">Febrero</option>
-																	<option value="03">Marzo</option>
-																	<option value="04">Abril</option>
-																	<option value="05">Mayo</option>
-																	<option value="06">Junio</option>
-																	<option value="07">Julio</option>
-																	<option value="08">Agosto</option>
-																	<option value="09">Septiembre</option>
-																	<option value="10">Octubre</option>
-																	<option value="11">Noviembre</option>
-																	<option value="12">Diciembre</option>
-																</select>
-															</div>
-															<div className="col-span-12 md:col-span-6 lg:col-span-4">
-																<label htmlFor="expiracion_anio" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
-																	F. Expiración Año
-																</label>
+			<div className="max-w-full bg-gray-100">
+				<Navbar />
+				<div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto py-16">
+					<Form method="post" replace ref={formRef} className="mt-3" onSubmit={(event) => {
+						submit(event.currentTarget);
+						if (actionData?.ok) {
+							event.currentTarget.reset();
+							setName("");
+						}
+						event.preventDefault();
+					}}>
+						<div className="grid grid-cols-12 gap-4 md:gap-8">
+							{/* Datos de Pago */}
+							<div className="col-span-12 order-2 md:order-1">
+								<h3 className="font-sans text-xl md:text-2xl font-black leading-loose text-[#2E2E2E]">Completa los datos de tu tarjeta</h3>
+							</div>
+							<div className="col-span-12 md:col-span-7 order-3 md:order-2">
+								<div className="w-full py-10 px-8 bg-white rounded-lg shadow-lg">
+									<div className="grid grid-cols-12 gap-4">
+										{/* Credit Card */}
+										<div className="col-span-12">
+											{/* Card */}
+											<div className="grid grid-cols-12 gap-4">
+												<div className="col-span-12">
+													<div className="grid grid-cols-12 gap-4">
+														<div className="col-span-12">
+															<label htmlFor="pan" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
+																Número de la tarjeta
+															</label>
+															<div className="relative">
 																<input
 																	type="tel"
 																	inputMode="numeric"
-																	name="expiracion_anio"
-																	id="expiracion_anio"
-																	autoComplete="cc-exp-year"
+																	autoComplete="cc-number"
+																	name="pan"
+																	id="pan"
 																	className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
-																	placeholder="2020"
+																	placeholder="0000 0000 0000 0000"
+																	pattern="[0-9\s]{13,19}"
+																	onChange={handleChange}
+																	ref={inputCard}
+																	maxLength={19}
+																/>
+																<div className="absolute inset-y-0 right-0 mr-2 flex items-center">
+																	<img src="/credit-card.png" alt="" className="max-w-full h-auto object-center object-cover" draggable="false" />
+																</div>
+															</div>
+														</div>
+														<div className="col-span-12">
+															<label htmlFor="nombre" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
+																Nombre en la tarjeta
+															</label>
+															<input
+																type="text"
+																name="nombre"
+																id="nombre"
+																autoComplete="cc-family-name"
+																className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
+																placeholder="Pedro Perez"
+																value={name}
+																onChange={handleNameChange}
+																minLength={1}
+																maxLength={60}
+															/>
+														</div>
+														<div className="col-span-12 md:col-span-6 xl:col-span-4">
+															<label htmlFor="expiracion_mes" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
+																Mes de expiración
+															</label>
+															<select
+																name="expiracion_mes"
+																id="expiracion_mes"
+																className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all form-select cursor-pointer"
+																autoComplete="cc-exp-month"
+															>
+																<option>Seleccionar mes</option>
+																<option value="01">Enero</option>
+																<option value="02">Febrero</option>
+																<option value="03">Marzo</option>
+																<option value="04">Abril</option>
+																<option value="05">Mayo</option>
+																<option value="06">Junio</option>
+																<option value="07">Julio</option>
+																<option value="08">Agosto</option>
+																<option value="09">Septiembre</option>
+																<option value="10">Octubre</option>
+																<option value="11">Noviembre</option>
+																<option value="12">Diciembre</option>
+															</select>
+														</div>
+														<div className="col-span-12 md:col-span-6 xl:col-span-4">
+															<label htmlFor="expiracion_anio" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
+																Año de expiración
+															</label>
+															<input
+																type="tel"
+																inputMode="numeric"
+																name="expiracion_anio"
+																id="expiracion_anio"
+																autoComplete="cc-exp-year"
+																className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
+																placeholder="2020"
+																maxLength={4}
+															/>
+														</div>
+														<div className="col-span-12 xl:col-span-4">
+															<label htmlFor="cvv2" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
+																Código de seguridad <span className="font-bold text-[#2E2E2E]">(CVV2)</span>
+															</label>
+															<div className="relative">
+																<input
+																	type="password"
+																	name="cvv2"
+																	id="cvv2"
+																	className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
+																	placeholder="1234"
+																	minLength={3}
 																	maxLength={4}
 																/>
-															</div>
-															<div className="col-span-12 lg:col-span-4">
-																<label htmlFor="cvv2" className="font-sans text-sm font-semibold leading-loose text-[#2E2E2E]">
-																	Código de seguridad <span className="font-bold text-[#2E2E2E]">(CVV2)</span>
-																</label>
-																<div className="relative">
-																	<input
-																		type="password"
-																		name="cvv2"
-																		id="cvv2"
-																		className="font-sans block w-full text-sm rounded-md border border-gray-400 py-3.5 px-4 text-[#2E2E2E] focus:border-blue-500 outline-0 transition-all"
-																		placeholder="1234"
-																		minLength={3}
-																		maxLength={4}
-																	/>
-																	<div className="absolute inset-y-0 right-0 mr-2 flex items-center">
-																		<img src="/pin-number.png" alt="" className="max-w-full h-auto object-center object-cover" draggable="false" />
-																	</div>
+																<div className="absolute inset-y-0 right-0 mr-2 flex items-center">
+																	<img src="/pin-number.png" alt="" className="max-w-full h-auto object-center object-cover" draggable="false" />
 																</div>
 															</div>
 														</div>
@@ -306,45 +304,48 @@ export default function Checkout() {
 											</div>
 										</div>
 									</div>
-									{/* Action */}
-									<div className="col-span-12 mt-5">
-										<div className="flex items-center justify-end align-middle space-x-5">
-											<button type="button" className="font-sans font-semibold text-xl bg-red-400 hover:bg-red-500 text-white rounded-md hover:shadow-lg py-2 px-5 transition-all" disabled={navigation.state === "submitting" ? true : false}>Regresar</button>
+								</div>
+								{/* Action */}
+								<div className="col-span-12 mt-5">
+									<div className="flex items-center justify-end align-middle space-x-5">
+										<button type="button" className="font-sans font-semibold text-xl bg-red-400 hover:bg-red-500 text-white rounded-md hover:shadow-lg py-2 px-5 transition-all" disabled={navigation.state === "submitting" ? true : false} onClick={() => {
+											navigate(-1)
+										}}>Regresar</button>
 
-											<button type="submit" className="font-sans font-semibold text-xl bg-red-600 hover:bg-red-700 text-white rounded-md hover:shadow-lg py-2 px-5 transition-all" disabled={navigation.state === "submitting" ? true : false}>
-												{
-													navigation.state === "submitting"
-														? "Enviando..."
-														: "Continuar"
-												}
-											</button>
-										</div>
+										<button type="submit" name="_action" value="create" className="font-sans font-semibold text-xl bg-red-600 hover:bg-red-700 text-white rounded-md hover:shadow-lg py-2 px-5 transition-all" disabled={navigation.state === "submitting" ? true : false}>
+											{
+												navigation.state === "submitting"
+													? "Enviando..."
+													: "Continuar"
+											}
+										</button>
 									</div>
 								</div>
-								{/* Producto */}
-								<div className="col-span-12 md:col-span-5 order-1 md:order-4">
-									<div className="w-full py-5 px-8 sticky top-0 right-0 left-0 bg-white rounded-lg shadow-lg">
-										<div className="grid grid-cols-12 gap-4">
-											<div className="col-span-12">
-												<div className="flex flex-col space-y-5">
-													<h4 className="font-sans font-black text-2xl text-[#2E2E2E]">Detalles de la compra</h4>
-													<div className="relative">
-														<div className="flex items-center justify-start space-x-2">
-															<img src="/shop.png" alt="Nombre del Comercio" className="max-w-full h-10 object-center object-cover" draggable="false" />
-															<p className="font-sans font-semibold text-base text-[#2E2E2E]">Nombre de la tienda</p>
-														</div>
+							</div>
+							{/* Producto */}
+							<div className="col-span-12 md:col-span-5 order-1 md:order-4">
+								<div className="w-full py-5 px-8 sticky top-0 right-0 left-0 bg-white rounded-lg shadow-lg">
+									<div className="grid grid-cols-12 gap-4">
+										<div className="col-span-12">
+											<div className="flex flex-col space-y-5">
+												<h4 className="font-sans font-black text-xl md:text-2xl text-[#2E2E2E]">Detalles de la compra</h4>
+												<div className="relative">
+													<div className="flex items-center justify-start space-x-2">
+														<img src="/shop.png" alt="Nombre del Comercio" className="max-w-full h-10 object-center object-cover" draggable="false" />
+														<p className="font-sans font-semibold text-base text-[#2E2E2E]">Nombre de la tienda</p>
 													</div>
-													<p className="font-sans font-semibold text-base text-[#2E2E2E]">Total de la compra: <b className="font-sans font-black text-2xl text-[#2E2E2E]">$1.456.00</b></p>
 												</div>
+												<p className="font-sans font-semibold text-base text-[#2E2E2E]">Total de la compra: <b className="font-sans font-black text-xl md:text-2xl text-[#2E2E2E]">$1.456.00</b></p>
 											</div>
 										</div>
 									</div>
 								</div>
 							</div>
-						</Form>
-					</div >
-				</div >}
-			< ToastContainer
+						</div>
+					</Form>
+				</div >
+			</div >
+			<ToastContainer
 				position="bottom-right"
 				autoClose={5000}
 				hideProgressBar={false}
@@ -356,14 +357,6 @@ export default function Checkout() {
 				theme="light"
 				transition={Bounce}
 			/>
-			{/* <DotLottieReact
-				src="https://lottie.host/3934e4e5-2fc4-46ff-84b6-ae378412c5dc/ARQnCUr31F.json"
-				loop
-				autoplay
-				title="Enviando..."
-				// autoResizeCanvas={false}
-				style={{ width: "150px", height: "150px", margin: "auto", objectFit: "cover", objectPosition: "center", position: "fixed", zIndex: "1000", top: "0", right: "0", bottom: "0", backgroundColor: "white", left: "0", overflowY: "hidden" }}
-			/> */}
 		</>
 	);
 }

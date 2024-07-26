@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 //! Core Imports
 import { type LinksFunction, type MetaFunction } from '@remix-run/node';
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
 	Links,
 	Meta,
@@ -9,18 +9,19 @@ import {
 	Scripts,
 	ScrollRestoration,
 	isRouteErrorResponse,
+	useNavigation,
 	useRouteError,
 } from "@remix-run/react";
 
 //! TailwindCSS
 import stylesheet from "./tailwind.css?url";
+//! Custom CSS
 import custom from "./styles/custom.css?url";
-
 //! Toastify
-import 'react-toastify/dist/ReactToastify.css';
-// minified version is also included
-// import 'react-toastify/dist/ReactToastify.min.css';
-
+// import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.min.css';
+//! Loader
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 export const meta: MetaFunction = () => {
 	return [
 		{ title: "T1pagos" },
@@ -55,9 +56,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+	const navigation = useNavigation();
+	const [loading, setLoading] = useState(false);
+
+	useEffect(() => {
+		if (navigation.state == "loading" || navigation.state == "idle" || navigation.state !== "submitting") {
+			setLoading(true);
+		}
+
+		setTimeout(() => {
+			setLoading(false);
+		}, 3000);
+	}, [navigation]);
+
 	return (
 		<>
-			<Outlet />
+			{
+				loading
+					? <DotLottieReact
+						src="https://lottie.host/6b77c6b2-01cf-47fa-8bf2-90b9b22a17f3/OYvzjURHXQ.json"
+						loop
+						autoplay
+						autoResizeCanvas={false}
+						style={{ width: "100%", height: "100%", margin: "auto", position: "fixed", zIndex: "1000", top: "0", right: "0", bottom: "0", backgroundColor: "white", left: "0" }}
+					/>
+					: <Outlet />
+			}
 		</>
 	);
 }

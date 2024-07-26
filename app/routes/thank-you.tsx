@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
 import { useEffect, useState } from "react";
@@ -28,46 +29,38 @@ export const meta: MetaFunction = () => {
 
 export default function ThankYou() {
     const { toast } = useLoaderData<typeof loader>();
-    const [loading, setLoading] = useState(false);
+
+    let gracias = "¡Gracias por su compra!";
+    let mensaje = "Muchas gracias por confiar en nosotros estimad@ Andres Gutierrez, Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum, quo..";
+    let comprar = "Volver a Comprar";
 
     useEffect(() => {
         if (toast) {
-            // notify on a toast message
             notify(toast.message, { type: toast.type });
         }
-
-        setLoading(true);
-
-        setTimeout(() => {
-            setLoading(false);
-        }, 3000)
     }, [toast]);
 
     return (
         <>
-            {loading ? <PuffLoader color={'#D0021B'} loading={loading} className="m-auto flex items-center justify-center align-middle" /> :
-                <div>
-                    <Navbar />
-                    <section className="max-w-full bg-gray-200 h-screen">
-                        <div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto h-full">
-                            <div className="grid grid-cols-12 gap-4 h-full">
-                                <div className="col-span-12">
-                                    <div className="flex flex-col items-center justify-center align-middle h-full">
-                                        <div className="max-w-full md:max-w-4xl flex flex-col items-center justify-center bg-green-50 rounded-md shadow-xl py-10 px-5 md:px-10 text-center">
-                                            {/* <h1 className="font-sans text-3xl font-bold text-[#2E2E2E]">T1Pagos</h1> */}
-                                            <h2 className="font-sans text-2xl md:text-5xl font-normal md:font-light uppercase text-green-500 md:leading-loose">¡Gracias por su compra!</h2>
-                                            {/* <p className="font-sans text-lg font-medium text-[#2E2E2E] leading-normal">Su pedido ha sido aprobado exitosamente.</p> */}
-                                            <p className="font-sans text-base font-normal text-[#2E2E2E] mt-5 md:mt-0 md:leading-normal">Muchas gracias por confiar en nosotros estimad@ Andres Gutierrez, Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum, quo..</p>
-                                            <Link to="/" prefetch="render" relative="route" className="font-sans text-base mt-7 md:mt-10 text-white bg-[#2E2E2E] hover:bg-[#202020] py-3.5 md:py-3 px-5 rounded-md transition-all">Volver a Comprar</Link>
-                                        </div>
-                                    </div>
+
+            <section className="max-w-full bg-gray-200 h-screen">
+                <Navbar />
+                <div className="max-w-full md:max-w-7xl px-4 sm:px-8 lg:px-12 mx-auto h-full">
+                    <div className="grid grid-cols-12 gap-4 h-full">
+                        <div className="col-span-12">
+                            <div className="flex flex-col items-center justify-center align-middle h-full">
+                                <div className="max-w-full md:max-w-4xl flex flex-col items-center justify-center bg-green-50 rounded-md shadow-xl py-10 px-5 md:px-10 text-center">
+                                    <h2 className="font-sans text-2xl md:text-5xl font-normal md:font-light uppercase text-green-500 md:leading-loose">{gracias}</h2>
+                                    <p className="font-sans text-base font-normal text-[#2E2E2E] mt-5 md:mt-0 md:leading-normal">{mensaje}</p>
+                                    <Link to="/" prefetch="render" relative="route" className="font-sans text-base mt-7 md:mt-10 text-white bg-[#2E2E2E] hover:bg-[#202020] py-3.5 md:py-3 px-5 rounded-md transition-all">{comprar}</Link>
                                 </div>
                             </div>
                         </div>
-                    </section>
+                    </div>
                 </div>
-            }
-            < ToastContainer
+            </section>
+
+            <ToastContainer
                 position="bottom-right"
                 autoClose={false}
                 hideProgressBar={true}
